@@ -1,0 +1,7186 @@
+var dropzone = document.getElementById('dropzone');
+$('.drop').on('dragover',function(event){
+    event.preventDefault();
+})
+dropzone.ondrop = function(e) {
+  var length = e.dataTransfer.items.length;
+  for (var i = 0; i < length; i++) {
+    var entry = e.dataTransfer.items[i].webkitGetAsEntry();
+    if (entry.isFile) {
+      alert('got file');
+    } else if (entry.isDirectory) {
+      alert('got dir');
+    }
+  }
+  e.preventDefault();
+};
+
+
+
+// Changes XML to JSON
+// Modified version from here: http://davidwalsh.name/convert-xml-json
+xmlToJson(xml) {
+  // Create the return object
+  let obj = {};
+
+  if (xml.nodeType === 1) { // element
+    // do attributes
+    if (xml.attributes.length > 0) {
+      obj['@attributes'] = {};
+      for (let j = 0; j < xml.attributes.length; j += 1) {
+        const attribute = xml.attributes.item(j);
+        obj['@attributes'][attribute.nodeName] = attribute.nodeValue;
+      }
+    }
+  } else if (xml.nodeType === 3) { // text
+    obj = xml.nodeValue;
+  }
+
+  // do children
+  // If just one text node inside
+  if (xml.hasChildNodes() && xml.childNodes.length === 1 && xml.childNodes[0].nodeType === 3) {
+    obj = xml.childNodes[0].nodeValue;
+  } else if (xml.hasChildNodes()) {
+    for (let i = 0; i < xml.childNodes.length; i += 1) {
+      const item = xml.childNodes.item(i);
+      const nodeName = item.nodeName;
+      if (typeof (obj[nodeName]) === 'undefined') {
+        obj[nodeName] = xmlToJson(item);
+      } else {
+        if (typeof (obj[nodeName].push) === 'undefined') {
+          const old = obj[nodeName];
+          obj[nodeName] = [];
+          obj[nodeName].push(old);
+        }
+        obj[nodeName].push(xmlToJson(item));
+      }
+    }
+  }
+  return obj;
+},
+
+
+
+$.getJSON(url , function(data) {
+    var tbl_body = document.createElement("tbody");
+    var odd_even = false;
+    $.each(data, function() {
+        var tbl_row = tbl_body.insertRow();
+        tbl_row.className = odd_even ? "odd" : "even";
+        $.each(this, function(k , v) {
+            var cell = tbl_row.insertCell();
+            cell.appendChild(document.createTextNode(v.toString()));
+        })        
+        odd_even = !odd_even;               
+    })
+    $("#target_table_id").appendChild(tbl_body);
+});
+
+
+var myList = [
+  { "name": "abc", "age": 50 },
+  { "age": "25", "hobby": "swimming" },
+  { "name": "xyz", "hobby": "programming" }
+];
+
+// Builds the HTML Table out of myList.
+function buildHtmlTable(selector) {
+  var columns = addAllColumnHeaders(myList, selector);
+
+  for (var i = 0; i < myList.length; i++) {
+    var row$ = $('<tr/>');
+    for (var colIndex = 0; colIndex < columns.length; colIndex++) {
+      var cellValue = myList[i][columns[colIndex]];
+      if (cellValue == null) cellValue = "";
+      row$.append($('<td/>').html(cellValue));
+    }
+    $(selector).append(row$);
+  }
+}
+
+// Adds a header row to the table and returns the set of columns.
+// Need to do union of keys from all records as some records may not contain
+// all records.
+function addAllColumnHeaders(myList, selector) {
+  var columnSet = [];
+  var headerTr$ = $('<tr/>');
+
+  for (var i = 0; i < myList.length; i++) {
+    var rowHash = myList[i];
+    for (var key in rowHash) {
+      if ($.inArray(key, columnSet) == -1) {
+        columnSet.push(key);
+        headerTr$.append($('<th/>').html(key));
+      }
+    }
+  }
+  $(selector).append(headerTr$);
+
+  return columnSet;
+}
+
+
+
+
+var myList=[{"name": "abc","age": 50},{"name": {"1": "piet","2": "jan","3": "klaas"},"age": "25","hobby": "watching tv"},{"name": "xyz","hobby": "programming","subtable": [{"a": "a","b": "b"},{"a": "a","b": "b"}]}];
+
+// Builds the HTML Table out of myList json data from Ivy restful service.
+ function buildHtmlTable() {
+      addTable(myList, $("#excelDataTable"));
+ }
+
+function addTable(list, appendObj) {
+    var columns = addAllColumnHeaders(list, appendObj);
+
+    for (var i = 0; i < list.length; i++) {
+        var row$ = $('<tr/>');
+        for (var colIndex = 0; colIndex < columns.length; colIndex++) {
+            var cellValue = list[i][columns[colIndex]];
+
+            if (cellValue == null) {
+                cellValue = "";
+            }
+
+            if (cellValue.constructor === Array)
+            {
+                $a = $('<td/>');
+                row$.append($a);
+                addTable(cellValue, $a);
+
+            } else if (cellValue.constructor === Object)
+            {
+
+                var array = $.map(cellValue, function (value, index) {
+                    return [value];
+                });
+
+                $a = $('<td/>');
+                row$.append($a);
+                addObject(array, $a);
+
+            } else {
+                row$.append($('<td/>').html(cellValue));
+            }
+        }
+        appendObj.append(row$);
+    }
+}
+
+
+function addObject(list, appendObj) {
+    for (var i = 0; i < list.length; i++) {
+        var row$ = $('<tr/>');
+
+        var cellValue = list[i];
+
+        if (cellValue == null) {
+            cellValue = "";
+        }
+
+        if (cellValue.constructor === Array)
+        {
+            $a = $('<td/>');
+            row$.append($a);
+            addTable(cellValue, $a);
+
+        } else if (cellValue.constructor === Object)
+        {
+
+            var array = $.map(cellValue, function (value, index) {
+                return [value];
+            });
+
+            $a = $('<td/>');
+            row$.append($a);
+            addObject(array, $a);
+
+        } else {
+            row$.append($('<td/>').html(cellValue));
+        }
+        appendObj.append(row$);
+    }
+}
+
+// Adds a header row to the table and returns the set of columns.
+// Need to do union of keys from all records as some records may not contain
+// all records
+function addAllColumnHeaders(list, appendObj)
+{
+    var columnSet = [];
+    var headerTr$ = $('<tr/>');
+
+    for (var i = 0; i < list.length; i++) {
+        var rowHash = list[i];
+        for (var key in rowHash) {
+            if ($.inArray(key, columnSet) == -1) {
+                columnSet.push(key);
+                headerTr$.append($('<th/>').html(key));
+            }
+        }
+    }
+    appendObj.append(headerTr$);
+
+    return columnSet;
+}
+
+
+
+
+LUA_SD_EVENT=/writescript.lua
+
+
+UPDIR=/DCIM
+
+
+command.cgi?op=121&TIME=1234...
+
+
+
+// During long uploads, polling requests were stacking up behind the upload
+// We add an active flag. The flag prevents new requests from going
+// out while one is active.
+var polling_active = false;
+var poll_counter = 0;
+
+function polling() {
+	if(polling_active && poll_counter-- <= 0) {
+		return;
+	}
+	polling_active = true;
+	poll_counter = 12;
+    var url="/command.cgi?op=121&TIME="+(Date.now());
+
+    $.get(url).done(function(data, textStatus, jqXHR){
+    	polling_active = false;
+        if(last_update_time < Number(data)) {
+        	last_update_time = Number(data);
+			getFileList(last_dirpath);
+        	$("#reloadtime").html("<font color=red>"+(new Date()).toLocaleString())+"</font>";
+        }else{
+        	$("#reloadtime").html((new Date()).toLocaleString());
+        }
+    }).fail(function(jqXHR, textStatus, errorThrown){
+    	polling_active = false;
+		//失敗した場合:エラー内容を表示
+		$("#reloadtime").html("<font color=red>Error:"+textStatus+"</font>");
+	});
+}
+
+	// Fix rotates (or at least try)
+	var rotates = document.getElementsByClassName('rotm90');
+    for (var i = 0; i < rotates.length; i++) {
+    	let ow = rotates[i].offsetWidth;
+    	let oh = rotates[i].offsetHeight;
+        rotates[i].style.width = oh + 'px';
+        rotates[i].style.height = ow + 'px';
+    }
+
+
+.rotm90 {
+/* Safari */
+-webkit-transform: rotate(-90deg);
+/* Firefox */
+-moz-transform: rotate(-90deg);
+/* IE */
+-chrome-transform: rotate(-90deg);
+}
+
+function plotTrack(track, obj) {
+// first walk the track and find min and max y positions
+	let ymin = 100000;
+	let ymax = -1000000;
+	let rowList = forceArray(track.noteRows);
+	for (var row : rowList) {
+		var noteList = forceArray(row.notes);
+		for (var n : noteList) {
+			let y = n.y;
+			if (y < ymin) ymin = y;
+			if (y > ymax) ymax = y;
+		}
+	}
+}
+0]="]TR-808
+1]="]DDD-1
+2]="]SDS-5
+3]="]TR-909
+4]="]R-50
+5]="]R-100
+6]="]LD
+7]="]HR-16B
+8]="]SCDT
+9]="]RX-5
+1]="0 XV-5080
+11 KR-55
+12 HR-II
+13 AT Rhythm
+14 CR-78
+
+30]="Chaz Bundick
+31]="Reuben Winter
+32]="Kody Nielson
+33]="Alfred Darlington
+34]="Travis Egedy
+35]="Sjionel Timu
+36]="Stefanie Franciotti
+37]="Stephanie Engelbrecht
+38]="Jonathan Snipes (FX)
+39]="Campbell Kneale
+40]="John Atkinson
+41]="Jonathan Snipes (Waterfalls)
+42]="Phil Elverum
+  ]="
+
+	/*
+	if(jsong.tracks) {
+	  let trax = forceArray(jsong.tracks.track);
+	  if (trax) {
+		for(var i = 0; i < trax.length; ++i) {
+			obj.append($("<h3/>").text("Track number " + (i + 1)));
+				jsonToTable(trax[i], obj);
+		}
+	  }
+	}
+	*/
+
+Just because you can doesn't mean you should — clipboard.js
+
+
+{clipboardEnabled ? <CopyToClipButton title='&rarr; Clip' getText={this.copySel.bind(this)}/> : null} 
+
+
+
+$(document).ready(function() {
+
+
+https://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
+function copyTextToClipboard(text) {
+  var textArea = document.createElement("textarea");
+
+  //
+  // *** This styling is an extra step which is likely not required. ***
+  //
+  // Why is it here? To ensure:
+  // 1. the element is able to have focus and selection.
+  // 2. if element was to flash render it has minimal visual impact.
+  // 3. less flakyness with selection and copying which **might** occur if
+  //    the textarea element is not visible.
+  //
+  // The likelihood is the element won't even render, not even a flash,
+  // so some of these are just precautions. However in IE the element
+  // is visible whilst the popup box asking the user for permission for
+  // the web page to copy to the clipboard.
+  //
+
+  // Place in top-left corner of screen regardless of scroll position.
+  textArea.style.position = 'fixed';
+  textArea.style.top = 0;
+  textArea.style.left = 0;
+
+  // Ensure it has a small width and height. Setting to 1px / 1em
+  // doesn't work as this gives a negative w/h on some browsers.
+  textArea.style.width = '2em';
+  textArea.style.height = '2em';
+
+  // We don't need padding, reducing the size if it does flash render.
+  textArea.style.padding = 0;
+
+  // Clean up any borders.
+  textArea.style.border = 'none';
+  textArea.style.outline = 'none';
+  textArea.style.boxShadow = 'none';
+
+  // Avoid flash of white box if rendered for any reason.
+  textArea.style.background = 'transparent';
+
+
+  textArea.value = text;
+
+  document.body.appendChild(textArea);
+
+  textArea.select();
+
+  try {
+    var successful = document.execCommand('copy');
+    var msg = successful ? 'successful' : 'unsuccessful';
+    console.log('Copying text command was ' + msg);
+  } catch (err) {
+    console.log('Oops, unable to copy');
+  }
+
+  document.body.removeChild(textArea);
+}
+
+
+var copyBobBtn = document.querySelector('.js-copy-bob-btn'),
+  copyJaneBtn = document.querySelector('.js-copy-jane-btn');
+
+copyBobBtn.addEventListener('click', function(event) {
+  copyTextToClipboard('Bob');
+});
+
+
+copyJaneBtn.addEventListener('click', function(event) {
+  copyTextToClipboard('Jane');
+});
+
+
+<div style="display:inline-block; vertical-align:top;">
+  <button class="js-copy-bob-btn">Set clipboard to BOB</button><br /><br />
+  <button class="js-copy-jane-btn">Set clipboard to JANE</button>
+</div>
+<div style="display:inline-block;">
+  <textarea class="js-test-textarea" cols="35" rows="4">Try pasting into here to see what you have on your clipboard:
+  
+  </textarea>
+</div>
+
+
+
+
+// Copies a string to the clipboard. Must be called from within an 
+// event handler such as click. May return false if it failed, but
+// this is not always possible. Browser support for Chrome 43+, 
+// Firefox 42+, Safari 10+, Edge and IE 10+.
+// IE: The clipboard feature may be disabled by an administrator. By
+// default a prompt is shown the first time the clipboard is 
+// used (per session).
+function copyToClipboard(text) {
+    if (window.clipboardData && window.clipboardData.setData) {
+        // IE specific code path to prevent textarea being shown while dialog is visible.
+        return clipboardData.setData("Text", text); 
+
+    } else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
+        var textarea = document.createElement("textarea");
+        textarea.textContent = text;
+        textarea.style.position = "fixed";  // Prevent scrolling to bottom of page in MS Edge.
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            return document.execCommand("copy");  // Security exception may be thrown by some browsers.
+        } catch (ex) {
+            console.warn("Copy to clipboard failed.", ex);
+            return false;
+        } finally {
+            document.body.removeChild(textarea);
+        }
+    }
+}
+
+
+Paste example (requires existing selected field).
+
+      $(ElementId).bind('copy', function(event) {
+        var selectedText = window.getSelection().toString(); 
+        selectedText = selectedText.replace(/\u200B/g, "");
+
+        clipboardData = event.clipboardData || window.clipboardData || event.originalEvent.clipboardData;
+        clipboardData.setData('text/html', selectedText);
+
+        event.preventDefault();
+      });
+
+
+json.song
+	new Clipboard('.clipbtn', {
+       text: function(trigger) {
+        return asText;
+    }
+	});
+<notes>
+</notes>
+
+https://stackoverflow.com/questions/201183/how-to-determine-equality-for-two-javascript-objects
+
+function objectEquals(x, y) {
+    'use strict';
+
+    if (x === null || x === undefined || y === null || y === undefined) { return x === y; }
+    // after this just checking type of one would be enough
+    if (x.constructor !== y.constructor) { return false; }
+    // if they are functions, they should exactly refer to same one (because of closures)
+    if (x instanceof Function) { return x === y; }
+    // if they are regexps, they should exactly refer to same one (it is hard to better equality check on current ES)
+    if (x instanceof RegExp) { return x === y; }
+    if (x === y || x.valueOf() === y.valueOf()) { return true; }
+    if (Array.isArray(x) && x.length !== y.length) { return false; }
+
+    // if they are dates, they must had equal valueOf
+    if (x instanceof Date) { return false; }
+
+    // if they are strictly equal, they both need to be object at least
+    if (!(x instanceof Object)) { return false; }
+    if (!(y instanceof Object)) { return false; }
+
+    // recursive object equality check
+    var p = Object.keys(x);
+    return Object.keys(y).every(function (i) { return p.indexOf(i) !== -1; }) &&
+        p.every(function (i) { return objectEquals(x[i], y[i]); });
+}
+
+
+///////////////////////////////////////////////////////////////
+/// The borrowed tests, run them by clicking "Run code snippet"
+///////////////////////////////////////////////////////////////
+var printResult = function (x) {
+    if (x) { document.write('<div style="color: green;">Passed</div>'); }
+    else { document.write('<div style="color: red;">Failed</div>'); }
+};
+var assert = { isTrue: function (x) { printResult(x); }, isFalse: function (x) { printResult(!x); } }
+assert.isTrue(objectEquals(null,null));
+assert.isFalse(objectEquals(null,undefined));
+assert.isFalse(objectEquals(/abc/, /abc/));
+assert.isFalse(objectEquals(/abc/, /123/));
+var r = /abc/;
+assert.isTrue(objectEquals(r, r));
+
+assert.isTrue(objectEquals("hi","hi"));
+assert.isTrue(objectEquals(5,5));
+assert.isFalse(objectEquals(5,10));
+
+assert.isTrue(objectEquals([],[]));
+assert.isTrue(objectEquals([1,2],[1,2]));
+assert.isFalse(objectEquals([1,2],[2,1]));
+assert.isFalse(objectEquals([1,2],[1,2,3]));
+
+assert.isTrue(objectEquals({},{}));
+assert.isTrue(objectEquals({a:1,b:2},{a:1,b:2}));
+assert.isTrue(objectEquals({a:1,b:2},{b:2,a:1}));
+assert.isFalse(objectEquals({a:1,b:2},{a:1,b:3}));
+
+assert.isTrue(objectEquals({1:{name:"mhc",age:28}, 2:{name:"arb",age:26}},{1:{name:"mhc",age:28}, 2:{name:"arb",age:26}}));
+assert.isFalse(objectEquals({1:{name:"mhc",age:28}, 2:{name:"arb",age:26}},{1:{name:"mhc",age:28}, 2:{name:"arb",age:27}}));
+
+Object.prototype.equals = function (obj) { return objectEquals(this, obj); };
+var assertFalse = assert.isFalse,
+    assertTrue = assert.isTrue;
+
+assertFalse({}.equals(null));
+assertFalse({}.equals(undefined));
+
+assertTrue("hi".equals("hi"));
+assertTrue(new Number(5).equals(5));
+assertFalse(new Number(5).equals(10));
+assertFalse(new Number(1).equals("1"));
+
+assertTrue([].equals([]));
+assertTrue([1,2].equals([1,2]));
+assertFalse([1,2].equals([2,1]));
+assertFalse([1,2].equals([1,2,3]));
+assertTrue(new Date("2011-03-31").equals(new Date("2011-03-31")));
+assertFalse(new Date("2011-03-31").equals(new Date("1970-01-01")));
+
+assertTrue({}.equals({}));
+assertTrue({a:1,b:2}.equals({a:1,b:2}));
+assertTrue({a:1,b:2}.equals({b:2,a:1}));
+assertFalse({a:1,b:2}.equals({a:1,b:3}));
+
+assertTrue({1:{name:"mhc",age:28}, 2:{name:"arb",age:26}}.equals({1:{name:"mhc",age:28}, 2:{name:"arb",age:26}}));
+assertFalse({1:{name:"mhc",age:28}, 2:{name:"arb",age:26}}.equals({1:{name:"mhc",age:28}, 2:{name:"arb",age:27}}));
+
+var a = {a: 'text', b:[0,1]};
+var b = {a: 'text', b:[0,1]};
+var c = {a: 'text', b: 0};
+var d = {a: 'text', b: false};
+var e = {a: 'text', b:[1,0]};
+var i = {
+    a: 'text',
+    c: {
+        b: [1, 0]
+    }
+};
+var j = {
+    a: 'text',
+    c: {
+        b: [1, 0]
+    }
+};
+var k = {a: 'text', b: null};
+var l = {a: 'text', b: undefined};
+
+assertTrue(a.equals(b));
+assertFalse(a.equals(c));
+assertFalse(c.equals(d));
+assertFalse(a.equals(e));
+assertTrue(i.equals(j));
+assertFalse(d.equals(k));
+assertFalse(k.equals(l));
+
+// from comments on stackoverflow post
+assert.isFalse(objectEquals([1, 2, undefined], [1, 2]));
+assert.isFalse(objectEquals([1, 2, 3], { 0: 1, 1: 2, 2: 3 }));
+assert.isFalse(objectEquals(new Date(1234), 1234));
+
+// no two different function is equal really, they capture their context variables
+// so even if they have same toString(), they won't have same functionality
+var func = function (x) { return true; };
+var func2 = function (x) { return true; };
+assert.isTrue(objectEquals(func, func));
+assert.isFalse(objectEquals(func, func2));   
+assert.isTrue(objectEquals({ a: { b: func } }, { a: { b: func } }));
+assert.isFalse(objectEquals({ a: { b: func } }, { a: { b: func2 } }));
+
+
+
+var x = eval("(" + remoteJSON + ')');
+var y = eval("(" + localJSON + ')');
+
+// https://stackoverflow.com/users/2215072/drwhite
+// https://stackoverflow.com/questions/26049303/how-to-compare-two-json-have-the-same-properties-without-order
+
+function jsonequals(x, y) {
+    // If both x and y are null or undefined and exactly the same
+    if ( x === y ) {
+        return true;
+    }
+
+    // If they are not strictly equal, they both need to be Objects
+    if ( ! ( x instanceof Object ) || ! ( y instanceof Object ) ) {
+        return false;
+    }
+
+    // They must have the exact same prototype chain, the closest we can do is
+    // test the constructor.
+    if ( x.constructor !== y.constructor ) {
+        return false;
+    }
+
+    for ( var p in x ) {
+        // Inherited properties were tested using x.constructor === y.constructor
+        if ( x.hasOwnProperty( p ) ) {
+            // Allows comparing x[ p ] and y[ p ] when set to undefined
+            if ( ! y.hasOwnProperty( p ) ) {
+                return false;
+            }
+
+            // If they have the same strict value or identity then they are equal
+            if ( x[ p ] === y[ p ] ) {
+                continue;
+            }
+
+            // Numbers, Strings, Functions, Booleans must be strictly equal
+            if ( typeof( x[ p ] ) !== "object" ) {
+                return false;
+            }
+
+            // Objects and Arrays must be tested recursively
+            if ( !equals( x[ p ],  y[ p ] ) ) {
+                return false;
+            }
+        }
+    }
+
+    for ( p in y ) {
+        // allows x[ p ] to be set to undefined
+        if ( y.hasOwnProperty( p ) && ! x.hasOwnProperty( p ) ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+function objectEquals(x, y) {
+    // if both are function
+    if (x instanceof Function) {
+        if (y instanceof Function) {
+            return x.toString() === y.toString();
+        }
+        return false;
+    }
+    if (x === null || x === undefined || y === null || y === undefined) { return x === y; }
+    if (x === y || x.valueOf() === y.valueOf()) { return true; }
+
+    // if one of them is date, they must had equal valueOf
+    if (x instanceof Date) { return false; }
+    if (y instanceof Date) { return false; }
+
+    // if they are not function or strictly equal, they both need to be Objects
+    if (!(x instanceof Object)) { return false; }
+    if (!(y instanceof Object)) { return false; }
+
+    var p = Object.keys(x);
+    return Object.keys(y).every(function (i) { return p.indexOf(i) !== -1; }) ?
+            p.every(function (i) { return objectEquals(x[i], y[i]); }) : false;
+}
+
+
+// Returns short cut pathways for populating the value display table
+var shortCutTab = Array(8);
+for(var i = 0; i < shortCutTab.length; ++i) shortCutTab[i] = Array(16);
+
+function genValueArray(json)
+{
+	
+}
+
+	if (hideShow === "&#x25BC") {
+		e.target.textContent = "&#x25BA";
+		
+		
+			} else if(json['sound']) {
+		formatSound(json.sound, obj, true);
+	} else if(json['kit']) {
+		let kitroot = json['kit'];
+		if (json['soundSources']) kitroot = json;
+		formatKit(kitroot, obj, true);
+	} else {
+		jsonToTable(json, obj);
+	}
+}
+
+
+
+function viewSound(e) {
+	let trn =  Number(e.target.getAttribute('trackno'));
+	
+	let hideShow = e.target.textContent;
+	let songJ = jsonDocument.song;
+	if (!songJ) return;
+
+	let trackA = forceArray(songJ.tracks.track);
+	let trackIX = trackA.length - trn - 1;
+	let trackD = trackA[trackIX];
+	
+	// Follow any indirect reference
+	if (trackD.instrument && trackD.instrument.referToTrackId !== undefined) {
+		let fromID = Number(trackD.instrument.referToTrackId);
+		trackD = trackA[fromID];
+	}
+
+	let divID = '#snd_place' + trn;
+	let where = $(divID);
+
+	if (hideShow === "▼") {
+		e.target.textContent = "►";
+		$(where)[0].innerHTML = "";
+	} else {
+	   if (trackD.soundParams) {
+	   	e.target.textContent = "▼";
+		let sp = trackD.soundParams;
+		formatSound(sp, where);
+	  } else if (trackD.kit) {
+	   		e.target.textContent = "▼";
+			let kitroot = trackD.kit;
+			if (trackD['soundSources']) {
+				kitroot = trackD;
+			}
+			formatKit(kitroot, where);
+		}
+	 }
+}
+
+
+<reverb>
+	<roomSize>1288490496</roomSize>
+	<dampening>1546188288</dampening>
+	<width>2147483647</width>
+	<pan>0</pan>
+	<compressor>
+		<attack>327244</attack>
+		<release>936</release>
+		<volume>-21474836</volume>
+		<syncLevel>6</syncLevel>
+	</compressor>
+</reverb>
+
+
+   "lpfResonance": "0xAE0000000400000000000000AE000000000000C0",
+   
+   
+   
+   .sound_grid td {
+	 border-bottom-style: double;
+	 border-bottom-width: 3px;
+}
+
+// Recur down a JSON object, replacing all string values that
+// contain hexidecimal constants with numbers 	
+function cleanUpParams(json, formatters) {
+	for (var k in json) {
+		if(json.hasOwnProperty(k)) {
+			if(formatters && formatters[k]) {
+				let v = formatters[k](json, k);
+				json[k] = v;
+				continue;
+			}
+
+			let v = json[k];
+			if (v.constructor === Array) {
+				for(var ix = 0; ix < v.length; ++ix) {
+					cleanUpParams(v[ix], formatters);
+				}
+
+			} else if(v.constructor === Object) {
+					cleanUpParams(v);
+			} else
+				if(typeof v === "string") {
+				if (v.startsWith('0x')) {
+					
+					let asInt= parseInt(v.substring(2, 10), 16);
+					// Convert to signed 32 bit.
+					if (asInt & 0x80000000) {
+						asInt -= 0x100000000;
+					}
+					let ranged = Math.round( ((asInt + 0x80000000) * 50) / 0x100000000) ;
+					json[k] = ranged;
+					//console.log(k + " converting: " + v + " to: " + ranged);
+				}
+			}
+		}
+	}
+}
+
+
+
+function fixRebParm(v) {
+
+	if(typeof v === "string" && v.startsWith('0x')) return v;
+	let vn = Number(v);
+	let ranged = Math.round( (vn * 50) / 0x7FFFFFFF);
+	return ranged;
+}
+
+function cleanUpReverb(json) {
+	let reverb = json.reverb;
+	if(reverb) {
+		reverb.roomSize = fixRebParm(reverb.roomSize);
+		reverb.dampening = fixRebParm(reverb.dampening);
+		reverb.width = fixRebParm(reverb.width);
+		let fpan = fixRebParm(reverb.pan);
+		reverb.pan = fpan; //  - 25;
+	}
+}
+
+
+/*
+function formatTime(tv)
+{
+	let t = Number(tv) / 1000;
+	let v = t.toFixed(3);
+	return v;
+}
+*/
+
+
+modulator2.toModulator1
+
+osc2.oscillatorSync = 1
+
+						<arpeggiatorGate>0x00000000</arpeggiatorGate>
+
+
+   "arpeggiator": {
+    "mode": "up",
+    "numOctaves": "2",
+    "syncLevel": "6"
+   },
+
+arpeggiator.mode
+arpeggiator.numOctaves
+arpeggiator.syncLevel
+
+<delay>
+	<pingPong>0</pingPong>
+	<analog>1</analog>
+	<syncLevel>7</syncLevel>
+</delay>                
+
+delay.pingPong
+delay.analog
+delay.syncLevel
+
+
+
+<patchCable>
+	<source>lfo1</source>
+	<destination>pitch</destination>
+	<amount>0x1333332C</amount>
+</patchCable>
+
+
+STA_RETRY_CT=0
+UPLOAD=1
+WEBDAV=2
+APPAUTOTIME=0
+APPMODE=4
+LUA_RUN_SCRIPT=/DR/checkflag.lua
+
+
+/**
+ * Performs a binary search on the host array. This method can either be
+ * injected into Array.prototype or called with a specified scope like this:
+ * binaryIndexOf.call(someArray, searchElement);
+ *
+ * @param {*} searchElement The item to search for within the array.
+ * @return {Number} The index of the element which defaults to -1 when not found.
+ */
+function binaryIndexOf(tab, seek) {
+    'use strict';
+ 
+    var minX = 0;
+    var maxX= tab.length - 1;
+    var curX;
+    var curItem;
+ 
+    while (minX <= maxX) {
+        curX = (minX + maxX) / 2 | 0;
+        curItem = this[curX];
+ 
+        if (curItem > seek) {
+            minIndex = curX + 1;
+        }
+        else if (curItem < seek) {
+            maxIndex = curX - 1;
+        }
+        else {
+            return tab[curX];
+        }
+    }
+ 
+    return tab[minX];
+}
+
+0x1FED79C218D30E1080000002D200000080000014D40000008000001C1200000080000038200000008000003E3A0000008000004E3E0000008000004F460000008000005448000000800000574E0000008000005A560000008000005F5A000000800000635E000000800000656200000080000069640000008000006A640000008000007D64000000800000A64BBBFE28800000B127092320800000BE
+
+
+1FED79C2
+18D30E10
+80000002
+D2000000
+80000014
+D4000000
+8000001C
+12000000
+80000038
+20000000
+8000003E
+3A000000
+8000004E
+3E000000
+8000004F
+46000000
+80000054
+48000000
+80000057
+4E000000
+8000005A
+56000000
+8000005F
+5A000000
+80000063
+5E000000
+80000065
+62000000
+80000069
+64000000
+8000006A
+64000000
+8000007D
+64000000
+800000A6
+4BBBFE28
+800000B1
+27092320
+800000BE
+
+
+	if(e.data.func == "clearResponse")
+	{
+		clrRes();
+	}
+	if(e.data.func == "setResponse")
+	{
+		setRes(e.data.arg);
+	}
+	
+	
+// Clear Response
+function clrRes()
+{
+	respons_output.innerHTML = "Response";
+}
+
+// Set response
+function setRes(text)
+{
+	if(chk.checked)
+	{
+		respons_output.innerHTML = "<pre>"+text + "</pre>";
+	}else{
+		respons_output.innerHTML = text ;
+	}
+}
+
+
+			<div class="toolbox">
+				<input type="button" value="#" id="showbtn" style="width:25pt" onclick="showTool()">
+			</div>
+			<span id="ToolButtons1" style="display:none">
+				<!--
+				<div class="toolbox">
+					<input type="button" value="Unlock(F7)" style="width:60pt" onclick="btn_unlock()" id="UnlockButton">
+				</div>
+				-->
+				<div class="toolbox">
+					<input type="button" value="Menu" style="width:40pt" onclick="btn_menu()">
+					<input type="button" value="CONFIG" style="width:50pt" onclick='btn_config()'>
+				</div>
+				<div style="margin-left: 5px;width:auto;float:left;display:inline-block;width: 30px;vertical-align: middle;font-size: x-small;text-align: center;">
+					<input type="checkbox" id="chk" name="pre_en" value="1" checked="checked">
+					&lt;pre&gt;
+				</div>
+			</span>
+
+
+	let kitList = forceArray(json.soundSources.sound);
+	
+	sample_list_template
+	sampList
+	
+	
+	
+function horizontalArray(arr, obj, title) {
+	let trtab = $("<table class='repeats'/>");
+	if(title) {
+		let trt = $("<tr/>");
+		trt.append($("<th colspan='" + arr.length +"'/>").html(title));
+		trtab.append(trt);
+	}
+	let trh = $("<tr/>");
+	for(var i = 0; i < arr.length; ++i) {
+		trh.append($("<th/>").html(i + 1));
+	}
+	trtab.append(trh);
+	
+	let trd = $("<tr/>");
+	for(var i = 0; i < arr.length; ++i) {
+		let rc = "" + arr[i];
+		trd.append($("<td/>").html(rc));
+	}
+	trtab.append(trd);
+	
+	obj.append(trtab);
+}
+
+
+
+		let fileReader = new FileReader();
+		let arrayBuffer;
+
+		fileReader.onloadend = () => {
+			arrayBuffer = fileReader.result;
+			console.log('meow');
+		}
+
+		
+		
+		
+				
+/********
+		
+		
+		var timeline = Object.create(WaveSurfer.timeline);
+
+		timeline.init({
+		wavesurfer: wavesurfer,
+		container: '#waveform-timeline'
+		});
+	});
+******/
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.2.3/wavesurfer.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.2.3/plugin/wavesurfer.regions.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.2.3/plugin/wavesurfer.timeline.min.js"></script>
+
+
+/* JSON and XML conversions and aids.
+*/
+/**
+* Converts passed XML string into a DOM element.
+* @param 		{String}			xmlStr
+* @return		{Object}			XML DOM object
+* @exception	{GeneralException}	Throws exception if no XML parser is available.
+* @TODO Should use this instead of loading XML into DOM via $.ajax()
+ */
+function getXmlDOMFromString(xmlStr) {
+	if (window.ActiveXObject && window.GetObject) {
+		var dom = new ActiveXObject('Microsoft.XMLDOM');
+		dom.loadXML(xmlStr);
+		return dom;
+	}
+	if (window.DOMParser){
+		return new DOMParser().parseFromString(xmlStr,'text/xml');
+	}
+	throw new Error( 'No XML parser available' );
+}
+
+// Changes XML Dom elements to JSON
+// Modified to ignore text elements
+// Modified version from here: http://davidwalsh.name/convert-xml-json
+function xmlToJson(xml) {
+  // Create the return object
+  let obj = {};
+
+  if (xml.nodeType === 1) { // element
+	// do attributes
+	if (xml.attributes.length > 0) {
+	  obj['@attributes'] = {};
+	  for (let j = 0; j < xml.attributes.length; j += 1) {
+		const attribute = xml.attributes.item(j);
+		obj['@attributes'][attribute.nodeName] = attribute.nodeValue;
+	  }
+	}
+  } else if (xml.nodeType === 3) { // text
+	obj = xml.nodeValue;
+  }
+
+  // do children
+  // If just one text node inside
+  if (xml.hasChildNodes() && xml.childNodes.length === 1 && xml.childNodes[0].nodeType === 3) {
+	obj = xml.childNodes[0].nodeValue;
+  } else if (xml.hasChildNodes()) {
+	for (let i = 0; i < xml.childNodes.length; i += 1) {
+	  const item = xml.childNodes.item(i);
+	  const nodeName = item.nodeName;
+	  if (item.nodeType === 3) continue; // JFF don't bother with text nodes
+	  if (typeof (obj[nodeName]) === 'undefined') {
+		obj[nodeName] = xmlToJson(item);
+	  } else {
+		if (typeof (obj[nodeName].push) === 'undefined') {
+		  const old = obj[nodeName];
+		  obj[nodeName] = [];
+		  obj[nodeName].push(old);
+		}
+		obj[nodeName].push(xmlToJson(item));
+	  }
+	}
+  }
+  return obj;
+}
+
+
+
+var genDict;
+// Generate entries for element ordering tables
+function xmlToOrderTab(xml) {
+	let accum = '';
+	let ourName = xml.nodeName;
+	let levelSet = new Set();
+	if (xml.hasChildNodes() && xml.childNodes.length === 1 && xml.childNodes[0].nodeType === 3) return;
+
+	accum += '"' + ourName + '": [\n';
+	
+	if (xml.hasChildNodes()) {
+		let levelA = genDict[ourName];
+		if (!levelA) {
+			levelA = [];
+			genDict[ourName] = levelA;
+		}
+		let prevElemName = undefined;
+		for (let i = 0; i < xml.childNodes.length; i += 1) {
+			let item = xml.childNodes.item(i);
+			if (item.nodeType === 3) continue;
+			let itemName = item.nodeName;
+			if (levelSet.has(itemName)) continue;
+			if (levelA.indexOf(itemName) === -1) {
+				let insertAt = 0;
+				if(prevElemName !== undefined) {
+					insertAt = levelA.indexOf(prevElemName) + 1;
+				}
+				levelA.splice(insertAt, 0, itemName);
+	 			levelSet.add(itemName);
+			}
+			prevElemName = itemName;
+		}
+	}
+
+	for (let i = 0; i < xml.childNodes.length; i += 1) {
+	 	let item = xml.childNodes.item(i);
+	 	xmlToOrderTab(item);
+	}
+}
+
+function genOrderTab(xml) {
+	genDict = {};
+	let genStr = '';
+	xmlToOrderTab(xml);
+	for(var ek in genDict) { 
+		if(genDict.hasOwnProperty(ek)) {
+			genStr += '"' + ek + '": [';
+			let ka = genDict[ek];
+			for (var i = 0; i < ka.length; ++i) {
+				genStr += '"' + ka[i] + '",\n';
+			}
+			genStr += '],\n';
+		}
+	}
+	console.log(genStr);
+}
+
+
+// Javascript does not specify a key-oder for enumerating properties of an object.
+// This means that element ordering may have been altered by edits, or the mere
+// act of going from XML to JSON. We fix this by consulting a table showing the
+// natural order of XML elements observed in Deluge files, and using that to
+// determine the order keys are written-out. While XML does not specify any
+// element ordering policies, some developers expect some elements to always
+// appear before certain others.
+	
+ var keyOrderTab = {
+ "song": ["previewNumPads",
+"preview",
+"xScroll",
+"xZoom",
+"yScrollSongView",
+"timePerTimerTick",
+"timerTickFraction",
+"rootNote",
+"inputTickMagnitude",
+"swingAmount",
+"swingInterval",
+"modeNotes",
+"reverb",
+"affectEntire",
+"activeModFunction",
+"lpfMode",
+"modFXType",
+"delay",
+"modFXCurrentParam",
+"currentFilterType",
+"songParams",
+"sections",
+"tracks",
+],
+"modeNotes": ["modeNote",
+],
+"reverb": ["roomSize",
+"dampening",
+"width",
+"pan",
+"compressor",
+],
+"compressor": ["attack",
+"release",
+"volume",
+"syncLevel",
+],
+"delay": ["rate",
+"feedback",
+"pingPong",
+"analog",
+"syncLevel",
+],
+"songParams": ["delay",
+"reverbAmount",
+"volume",
+"pan",
+"lpf",
+"hpf",
+"modFXDepth",
+"modFXRate",
+"stutterRate",
+"sampleRateReduction",
+"bitCrush",
+"equalizer",
+"modFXOffset",
+"modFXFeedback",
+],
+"lpf": ["frequency",
+"resonance",
+],
+"hpf": ["frequency",
+"resonance",
+],
+"equalizer": ["bass",
+"treble",
+"bassFrequency",
+"trebleFrequency",
+],
+"sections": ["section",
+],
+"section": ["id",
+"numRepeats",
+],
+"tracks": ["track",
+],
+"track": ["inKeyMode",
+"yScroll",
+"yScrollKeyboard",
+"status",
+"playEnabledAtStart",
+"trackLength",
+"colourOffset",
+"beingEdited",
+"affectEntire",
+"activeModFunction",
+"instrument",
+"instrumentPresetSlot",
+"instrumentPresetSubSlot",
+"midiChannel",
+"modKnobs",
+"section",
+"sound",
+"soundParams",
+"kit",
+"kitParams",
+"noteRows",
+],
+"instrument": ["referToTrackId",
+],
+"modKnobs": ["modKnob",
+],
+"modKnob": ["controlsParam",
+"patchAmountFromSource",
+"cc",
+"value",
+],
+"noteRows": ["noteRow",
+],
+"noteRow": ["y",
+"muted",
+"colourOffset",
+"drumIndex",
+"soundParams",
+"notes",
+],
+"notes": ["note",
+],
+"note": ["length",
+"velocity",
+"pos",
+],
+"kit": ["lpfMode",
+"modFXType",
+"delay",
+"modFXCurrentParam",
+"currentFilterType",
+"soundSources",
+"selectedDrumIndex",
+],
+"soundSources": ["sound",
+],
+"sound": ["name",
+"osc1",
+"osc2",
+"polyphonic",
+"clippingAmount",
+"voicePriority",
+"sideChainSend",
+"lfo1",
+"lfo2",
+"mode",
+"modulator1",
+"modulator2",
+"transpose",
+"unison",
+"compressor",
+"lpfMode",
+"modFXType",
+"delay",
+"defaultParams",
+"midiKnobs",
+"modKnobs",
+],
+"osc1": ["type",
+"transpose",
+"cents",
+"retrigPhase",
+"loopMode",
+"reversed",
+"timeStretchEnable",
+"timeStretchAmount",
+"fileName",
+"zone",
+],
+"zone": ["startMilliseconds",
+"endMilliseconds",
+],
+"osc2": ["type",
+"transpose",
+"cents",
+"retrigPhase",
+"loopMode",
+"reversed",
+"timeStretchEnable",
+"timeStretchAmount",
+"fileName",
+"zone",
+],
+"lfo1": ["type",
+"syncLevel",
+],
+"lfo2": ["type",
+],
+"unison": ["num",
+"detune",
+],
+"defaultParams": ["arpeggiatorGate",
+"portamento",
+"compressorShape",
+"oscAVolume",
+"oscAPulseWidth",
+"oscBVolume",
+"oscBPulseWidth",
+"noiseVolume",
+"volume",
+"pan",
+"lpfFrequency",
+"lpfResonance",
+"hpfFrequency",
+"hpfResonance",
+"envelope1",
+"envelope2",
+"lfo1Rate",
+"lfo2Rate",
+"modulator1Amount",
+"modulator1Feedback",
+"modulator2Amount",
+"modulator2Feedback",
+"carrier1Feedback",
+"carrier2Feedback",
+"modFXRate",
+"modFXDepth",
+"delayRate",
+"delayFeedback",
+"reverbAmount",
+"arpeggiatorRate",
+"patchCables",
+"stutterRate",
+"sampleRateReduction",
+"bitCrush",
+"equalizer",
+"modFXOffset",
+"modFXFeedback",
+],
+"envelope1": ["attack",
+"decay",
+"sustain",
+"release",
+],
+"envelope2": ["attack",
+"decay",
+"sustain",
+"release",
+],
+"patchCables": ["patchCable",
+],
+"patchCable": ["source",
+"destination",
+"amount",
+"rangeAdjustable",
+],
+"kitParams": ["delay",
+"reverbAmount",
+"volume",
+"pan",
+"lpf",
+"hpf",
+"modFXDepth",
+"modFXRate",
+"stutterRate",
+"sampleRateReduction",
+"bitCrush",
+"equalizer",
+"modFXOffset",
+"modFXFeedback",
+],
+"soundParams": ["arpeggiatorGate",
+"portamento",
+"compressorShape",
+"oscAVolume",
+"oscAPulseWidth",
+"oscBVolume",
+"oscBPulseWidth",
+"noiseVolume",
+"volume",
+"pan",
+"lpfFrequency",
+"lpfResonance",
+"hpfFrequency",
+"hpfResonance",
+"envelope1",
+"envelope2",
+"lfo1Rate",
+"lfo2Rate",
+"modulator1Amount",
+"modulator1Feedback",
+"modulator2Amount",
+"modulator2Feedback",
+"carrier1Feedback",
+"carrier2Feedback",
+"modFXRate",
+"modFXDepth",
+"delayRate",
+"delayFeedback",
+"reverbAmount",
+"arpeggiatorRate",
+"patchCables",
+"stutterRate",
+"sampleRateReduction",
+"bitCrush",
+"equalizer",
+"modFXOffset",
+"modFXFeedback",
+],
+"modulator1": ["transpose",
+"cents",
+"retrigPhase",
+],
+"modulator2": ["transpose",
+"cents",
+"retrigPhase",
+"toModulator1",
+],
+};
+
+function gentabs(d) {
+	var str = "";
+	for(var i = 0; i< d; ++i) str += '\t';
+	return str;
+}
+
+function jsonToXML(kv, j, d) {
+	if(j.constructor !== Object && j.constructor !== Array) {
+		return gentabs(d) + "<" + kv + ">" + j + "</" + kv + ">\n";
+	}
+	let atList = j["@attributes"];
+	let atStr = "";
+	if (atList) {
+		for (var ak in atList) {
+			if(atList.hasOwnProperty(ak)) {
+				atStr += ' ';
+				atStr += ak;
+				atStr += '="';
+				atStr += atList[ak];
+				atStr +='"';
+			}
+		}
+	}
+	let insides = "";
+	
+	let keyOrder = [];
+	let keyTab = keyOrderTab[kv];
+
+	if (keyTab) {
+		let keySet = new Set();
+		for(var ek in j) { 
+			if(j.hasOwnProperty(ek) && ek != "@attributes") {
+				keySet.add(ek);
+			}
+		}
+		for (var ktx = 0; ktx < keyTab.length; ++ktx) {
+			let nkv = keyTab[ktx];
+			if (j.hasOwnProperty(nkv)) {
+				keyOrder.push(nkv);
+				keySet.delete(nkv);
+			}
+		}
+
+		if (keySet.size > 0) {
+			for (let sk of keySet.keys()) {
+				keyOrder.push(sk);
+				console.log("Missing: " + sk + " in: " + kv);
+			}
+		}
+	} else { // No keytab entry, do it the old-fashioned way.
+		for(var ek in j) { 
+			if(j.hasOwnProperty(ek) && ek != "@attributes") {
+				keyOrder.push(ek);
+			}
+		}
+	}
+
+	for(var i = 0; i < keyOrder.length; ++i) {
+		let kv = keyOrder[i];
+		let v = j[kv];
+		if (v === undefined) {
+			continue;
+		}
+		if (v.constructor === Array) {
+			for(var i = 0; i < v.length; ++i) {
+				insides += jsonToXML(kv, v[i], d + 1);
+				}
+		} else if (v.constructor == Object) {
+			insides += jsonToXML(kv, v, d + 1);
+		} else {
+				// Simple k/v pair
+			if(typeof v === "string") v = v.trim();
+			insides += jsonToXML(kv, v, d);
+		}
+	}
+	let str = gentabs(d - 1) + "<" + kv + atStr;
+	
+	if (insides.length > 0) {
+		str += '>\n' + insides + gentabs(d - 1) + '</' + kv + '>\n';
+	} else {
+		str += "/>";
+	}
+	return str;
+}
+
+function jsonToXMLString(root, json) {
+	let depth = 0;
+	return jsonToXML(root, json, depth);
+}
+
+// Thanks to Dr. White for the jsonequals function.
+// https://stackoverflow.com/users/2215072/drwhite
+// https://stackoverflow.com/questions/26049303/how-to-compare-two-json-have-the-same-properties-without-order
+function jsonequals(x, y) {
+	// If both x and y are null or undefined and exactly the same
+	if ( x === y ) {
+		return true;
+	}
+
+	// If they are not strictly equal, they both need to be Objects
+	if ( ! ( x instanceof Object ) || ! ( y instanceof Object ) ) {
+		return false;
+	}
+
+	// They must have the exact same prototype chain, the closest we can do is
+	// test the constructor.
+	if ( x.constructor !== y.constructor ) {
+		return false;
+	}
+
+	for ( var p in x ) {
+		// Inherited properties were tested using x.constructor === y.constructor
+		if ( x.hasOwnProperty( p ) ) {
+			// Allows comparing x[ p ] and y[ p ] when set to undefined
+			if ( ! y.hasOwnProperty( p ) ) {
+				return false;
+			}
+
+			// If they have the same strict value or identity then they are equal
+			if ( x[ p ] === y[ p ] ) {
+				continue;
+			}
+
+			// Numbers, Strings, Functions, Booleans must be strictly equal
+			if ( typeof( x[ p ] ) !== "object" ) {
+				return false;
+			}
+
+			// Objects and Arrays must be tested recursively
+			if ( !jsonequals( x[ p ],  y[ p ] ) ) {
+				return false;
+			}
+		}
+	}
+
+	for ( p in y ) {
+		// allows x[ p ] to be set to undefined
+		if ( y.hasOwnProperty( p ) && ! x.hasOwnProperty( p ) ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+
+
+
+function forceArray(obj) {
+	if(obj !== undefined && obj.constructor === Array) return obj;
+	let aObj = [];
+	if(obj === undefined) return aObj;
+	aObj[0] = obj;
+	return aObj;
+}
+
+
+
+var runOfflineContext = function (buffer, doneF) {
+	var numChannels = buffer.numberOfChannels
+	var sampleRate = buffer.sampleRate
+	let bufLen = buffer.getChannelData(0).length;
+	let offlineCtx = new OfflineContext(numChannels, bufLen, sampleRate);
+	let source = offlineCtx.createBufferSource();
+	source.buffer = buffer;
+	source.connect(offlineCtx.destination);
+	source.start();
+	offlineCtx.startRendering().then(function(renderedBuffer) {
+		console.log('Rendering completed successfully');
+		doneF(renderedBuffer);
+/*
+		var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+		var song = audioCtx.createBufferSource();
+		song.buffer = renderedBuffer;
+
+		song.connect(audioCtx.destination);
+
+		play.onclick = function() {
+		song.start();
+*/
+	}).catch(function(err) {
+		console.log('Rendering failed: ' + err);
+	// Note: The promise should reject when startRendering is called a second time on an OfflineAudioContext
+	});	
+}
+
+var testOfflineContext = function (e)
+{
+	let buffer = wavesurfer.backend.buffer;
+	runOfflineContext(buffer, function (buf) {
+		let cat = 3;
+		console.log("Callback accomplished");
+	});
+}
+
+
+
+/*
+var runOfflineContext = function (buffer, filterList) {
+	var numChannels = buffer.numberOfChannels
+	var sampleRate = buffer.sampleRate
+	let bufLen = buffer.getChannelData(0).length;
+	let offlineCtx = createOfflineContext(buff);
+	return offlineCtx;
+	
+	let source = offlineCtx.createBufferSource();
+	
+	let prevFilter = source;
+	// Connect all filters in the filter chain.
+	for (var i = 0; i < filterList.length; ++i) {
+		let thisFilter = filterList[i];
+		prevFilter.connect(thisFilter);
+		prevFilter = thisFilter;
+	}
+
+	source.buffer = buffer;
+	prevFilter.connect(offlineCtx.destination);
+	source.start();
+
+	return offlineCtx.startRendering().then(function(renderedBuffer) {
+		console.log('Rendering completed successfully');
+		wavesurfer.backend.load(renderedBuffer);
+		wavesurfer.drawBuffer();
+	}).catch(function(err) {
+		console.log('Rendering failed: ' + err);
+	});	
+}
+*/
+
+
+/*
+function arrayBufferToBase64( buffer ) {
+    var binary = '';
+    var bytes = new Uint8Array( buffer );
+    var len = bytes.byteLength;
+    for (var i = 0; i < len; i++) {
+        binary += String.fromCharCode( bytes[ i ] );
+    }
+    return window.btoa( binary );
+}
+*/
+
+
+var addFiltersAndRun = function (ctx, filters, buffer) {
+	let source = ctx.createBufferSource();
+
+	// Connect all filters in the filter chain.
+	let prevFilter = source;
+
+	for (var i = 0; i < filters.length; ++i) {
+		let thisFilter = filters[i];
+		prevFilter.connect(thisFilter);
+		prevFilter = thisFilter;
+	}
+
+	prevFilter.connect(ctx.destination);
+
+	source.buffer = buffer;
+	source.start();
+
+	ctx.startRendering().then(function(renderedBuffer) {
+		console.log('Rendering completed successfully');
+		wavesurfer.backend.load(renderedBuffer);
+		wavesurfer.drawBuffer();
+	}).catch(function(err) {
+		console.log('Rendering failed: ' + err);
+	});
+}
+
+/*
+window.onbeforeunload = function(event){
+	if(unexpected_close && !jsEditor.isClean())
+	{
+		event = event || window.event;
+		event.returnValue = "Exit?";
+	}
+}
+*/
+
+
+/*
+function openLocal(evt)
+{
+	var files = evt.target.files;
+	var f = files[0];
+	if (f === undefined) return;
+	var reader = new FileReader();
+// Closure to capture the file information.
+	reader.onload = (function(theFile) {
+		return function(e) {
+			// Display contents of file
+				let t = e.target.result;
+				setEditText(t);
+			};
+		})(f);
+
+	// Read in the image file as a data URL.
+	reader.readAsText(f);
+}
+*/
+
+<div>
+	<table id='buttons' class='nobord'><tr>
+<td><button class="butn" onclick="wavesurfer.playPause()" title='Play'><img src='img/glyphicons-174-play.png'/></button></td>
+<td><button class="butn" onclick="doUndo()" title='Undo'><img src='img/glyphicons-436-undo.png'/></button></td>
+<td><button class="butn" onclick="doRedo()" title='Redo'><img src='img/glyphicons-435-redo.png'/></button></td>
+<td><button class="butn" onclick="normalizer()">Normalize</button></td>
+<td><button class="butn" onclick="testOfflineContext()">Test</button></td>
+<td><button class="butn" onclick="fadeIn()">Fade In</button></td>
+<td><button class="butn" onclick="fadeOut()">Fade Out</button></td>
+<td><button class="butn" onclick="deleteSelected()" title='Delete'><img src='img/glyphicons-257-delete.png'/></button></td>
+<td><button class="butn" onclick="copySelected()" title='Copy to clipboard'><img src='img/glyphicons-512-copy.png'/></button></td>
+</tr></table>
+</div>
+
+
+requestAnimationFrame?
+showOverview
+
+    height: 30,
+    waveColor: '#ddd',
+    progressColor: '#999',
+    cursorColor: '#68A93D',
+    barHeight: 1.4
+/*
+var pushBuffer = function ()
+{
+	let buffer = wavesurfer.backend.buffer;
+	let srcLen = buffer.getChannelData(0).length;
+	let {numberOfChannels, sampleRate} = buffer;
+	let saveBuffer = audioCtx.createBuffer(numberOfChannels, srcLen, sampleRate);
+
+	for (var cx = 0; cx < numberOfChannels; ++cx) {
+		let sa = buffer.getChannelData(cx);
+		let da = nextBuffer.getChannelData(cx);
+		for(var i = 0; i < last; ++i) {
+			da[i] = sa[i];
+		}
+	}
+
+	return nextBuffer;
+}
+*/
+
+
+this.selectedText = (0, _select2.default)(this.fakeElem);
+
+	let clip = clipBd.getData('text/plain');
+	if (!clip.startsWith('Ukl')) {
+		pasteSelected(localClipboard, true);
+		return;
+	}
+
+	let asbin = base64ToArrayBuffer(clip);
+	wavesurfer.backend.decodeArrayBuffer(asbin, function (data) {
+		pasteSelected(data, true);
+	 }, function (err) {
+		console.log('paste decode error');
+	});
+	
+	
+	maxCanvasElementWidth vs. 
+	const requiredCanvases = Math.ceil( width / this.params.maxCanvasWidth );
+
+
+ drawSamplesO(surfer, width, start, end)
+  {
+	const requiredCanvases = Math.ceil(
+		width / this.maxCanvasElementWidth
+	);
+
+	this.setWidth(width);
+	this.clearWave();
+
+  	let backend = surfer.backend;
+  	let buffer = backend.buffer;
+	let {numberOfChannels, sampleRate} = buffer;
+	let nSamps = buffer.getChannelData(0);
+	let spDx = sampleRate / this.params.minPxPerSec; // ?
+
+	const height = Math.round(this.params.height * this.params.pixelRatio); // ?
+	const halfH = Math.round(height / 2);
+	const pixH = 2;
+	const pixW = Math.ceil(1/spDx) + 1;
+	let ySc = -halfH;
+	let duration = surfer.getDuration();
+	let durScale = duration * this.params.minPxPerSec; // ?
+
+	let cursorTime = surfer.getCurrentTime();
+
+	for (var c = 0; c < numberOfChannels; ++c) {
+		const offsetY = height * c || 0;
+		var chan = buffer.getChannelData(c);
+		let yoff = halfH + c * height;
+		this.canvases.forEach(entry => {
+			let t0 = performance.now();
+			let {progressCtx, waveCtx}  = entry;
+			let lhs = Math.round(entry.start * durScale);
+			let rhs = Math.round(entry.end * durScale);
+			console.log(lhs + ", " + rhs + " " + entry.start + " " + entry.end);
+			this.setFillStyles(entry);
+			let sx = entry.start * duration * sampleRate;
+			let x = 0;
+			for (var xx = lhs; xx < rhs; ++xx) {
+				let sxi = Math.round(sx);
+				let y = yoff + Math.round(chan[sxi] * ySc);
+
+				sx += spDx;
+				//waveCtx.fillRect(x, y, width, height);
+				waveCtx.fillRect(
+					x, y, pixW, pixH);
+				progressCtx.fillRect(
+					x, y, pixW, pixH);	
+					
+				x++;
+			}
+			let t1 = performance.now();
+			let dT = t1 - t0;
+			console.log(dT);
+		});
+	}
+  }
+
+
+	/**
+	 * Handle click event
+	 *
+	 * @param {Event} e Click event
+	 * @param {?boolean} noPrevent Set to true to not call `e.preventDefault()`
+	 * @return {number} Playback position from 0 to 1
+	 */
+	handleEvent(e, noPrevent) {
+		const bbox = this.wrapper.getBoundingClientRect();
+
+		const nominalWidth = this.width;
+		const parentWidth = this.getWidth();
+
+		let progress;
+
+		if (!this.params.fillParent && nominalWidth < parentWidth) {
+			progress =
+				(clientX - bbox.left) * this.params.pixelRatio / nominalWidth ||
+				0;
+
+			if (progress > 1) {
+				progress = 1;
+			}
+		} else {
+			progress =
+				(clientX - bbox.left + this.wrapper.scrollLeft) /
+					this.wrapper.scrollWidth || 0;
+		}
+
+		return progress;
+	}
+
+47995, 51997 0.2691372950566871 0.2915777396711038
+41100 12 43632 47268 4002 0.2691372950566871 0.2915777396711038
+
+
+wavesurfer.on('scroll', function (screvt) {
+  console.log('scrolling');
+});
+
+
+ drawSamples(surfer, width)
+  {
+  	console.log(this.maxCanvasElementWidth + " " + this.maxCanvasWidth);
+	this.setWidth(width);
+	this.clearWave();
+	this.canvases.forEach(entry => {this.imageSampleCanvas(surfer, entry)});
+	
+	if (!this.scrollingSetUp) {
+		this.scrollingSetUp = true;
+		surfer.on('scroll', function (screvt) {
+		console.log(surfer.drawer.getScrollX());
+		});
+	}
+  }
+
+
+clearWaveForEntry
+
+this.updateDimensions(entry, canvasWidth, this.height, leftOffset);
+
+if (this.tiledRendering) {
+			console.log("Setting width: " + width);
+			this.style(this.wrapper, {
+				width: width + 'px'
+			});
+		} else 
+
+// Create an empty <div> to hold open 
+if (!this.spacer) {
+	 this.spacer = this.wrapper.appendChild(
+	  this.style(document.createElement('div'), {
+		position: 'absolute',
+		zIndex: 2,
+		left: leftOffset + 'px',
+		top: 0,
+		bottom: 0,
+		height: '100%',
+		pointerEvents: 'none'
+		});
+	);
+}
+
+
+
+	calcCanvasInfo(x) {
+		let x1 = x / this.params.pixelRatio;
+		let canN = Math.floor(x1 / this.maxCanvasElementWidth);
+		let lhs = canN * this.maxCanvasElementWidth;
+		let rhs = lhs + this.maxCanvasElementWidth;
+		let canvasWidth = this.maxCanvasWidth + 2 * Math.ceil(this.params.pixelRatio / 2);
+
+		const elementWidth = Math.round(canvasWidth / this.params.pixelRatio);
+		const totalWidth = Math.round(this.width / this.params.pixelRatio);
+
+		// Where the canvas starts and ends in the waveform, represented as a decimal between 0 and 1.
+		let start = lhs / totalWidth || 0;
+		// entry.start = entry.waveCtx.canvas.offsetLeft / totalWidth || 0;
+		let end = start + elementWidth / totalWidth;
+
+		return {
+			number: canN,
+			left:	lhs,
+			right:	rhs,
+			canvasWidth:  canvasWidth,
+			start:	start,
+			end:	end,
+		}
+	}
+
+
+var xhr_timeout = 20*60*1000;
+
+function save(filepath, edit)
+{
+	var xhr = new XMLHttpRequest();
+	xhr.open("PUT", filepath, false);
+	xhr.setRequestHeader("Overwrite", "t");
+	xhr.setRequestHeader("Content-type", "audio/wav");
+	xhr.timeout = xhr_timeout;
+
+	try {
+		xhr.send(edit);
+	} catch (e) {
+		alert("Exception!(save): "+e.message);
+	}
+
+	//---return stat---
+	if(xhr.readyState != 4)
+		alert("save failed.");
+		return -1;
+	}
+	if(xhr.status == 0){
+		alert("internal Error (EMPTY RESPONSE / CONNECTION REFUSED / etc...)");
+		return -1;
+	}
+	if((xhr.status < 200) || (xhr.status > 300)){ //!=2XX
+		alert("Server Error. CODE:"+xhr.status);
+		return -1;
+	}
+	unlock();
+	return 0;
+}
+
+function unlock()
+{
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET" , "/upload.cgi?WRITEPROTECT=OFF",false);
+	xhr.setRequestHeader("If-Modified-Since", "Thu, 01 Jan 1970 00:00:00 GMT");
+	xhr.timeout = xhr_timeout;
+	try {
+		xhr.send();
+	} catch (e) {
+		alert("Exception!(Unlock): "+e.message);
+	}
+	return 0;
+}
+
+function putBack(filepath, edit)
+{
+	$.ajax(filepath, {
+	headers:	{'Overwrite': 't', 'Content-type': 'audio/wav'},
+	cache:		false,
+	contentType: false,
+	data:		edit,
+	processData : false,
+	method:		'PUT',
+	error:		function(jqXHR, textStatus, errorThrown) {
+		alert(textStatus + "\n" + errorThrown);
+	},
+	success     : function(data, textStatus, jqXHR){
+		$.ajax("/upload.cgi?WRITEPROTECT=OFF",{
+			error:		function(jqXHR, textStatus, errorThrown) {
+				alert(textStatus + "\n" + errorThrown);
+			},
+			headers: {If-Modified-Since", "Thu, 01 Jan 1970 00:00:00 GMT"});
+	});
+	},
+	xhr: function() {
+		var xhr = new window.XMLHttpRequest();
+	  	xhr.upload.addEventListener("progress", function(evt){
+		  if (evt.lengthComputable) {
+			  var percentComplete = Math.round(evt.loaded / evt.total * 100.0);
+			  //Do something with upload progress
+			 //  $("#statind").text(fName + " " + percentComplete + "%");
+			 console.log(percentComplete);
+		  }
+		}, false);
+	 	return xhr;
+	});
+
+}
+
+// Simple slider with editable value:
+
+<body>
+	<form>
+		<input type="range" name="amountRange" min="0" max="20" value="0" oninput="this.form.amountInput.value=this.value" />
+		<input type="number" name="amountInput" min="0" max="20" value="0" oninput="this.form.amountRange.value=this.value" />
+	</form>
+</body>
+
+https://refreshless.com/nouislider/
+
+
+<table>
+<tr><td>Cat Food</td><td><input style='width: 500px' type="range" min="0" max="255" name="sld" value="47"></td></tr>
+<tr><td>Kittens</td><td><input style='width: 500px' type="range" min="0" max="255" name="sld" value="47"></td></tr>
+</table>
+
+
+
+
+/* Dropdown Button */
+.dropbtn {
+    background-color: #3498DB;
+    color: white;
+    padding: 16px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+}
+
+/* Dropdown button on hover & focus */
+.dropbtn:hover, .dropbtn:focus {
+    background-color: #2980B9;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #ddd}
+
+/* Show the dropdown menu (use JS to add this class to the .dropdown-content container when the user clicks on the dropdown button) */
+.show {display:block;}
+
+
+<div class="dropdown">
+  <button onclick="myFunction()" class="dropbtn">Dropdown</button>
+  <div id="myDropdown" class="dropdown-content">
+    <a href="#">Link 1</a>
+    <a href="#">Link 2</a>
+    <a href="#">Link 3</a>
+  </div>
+</div>
+
+
+/* When the user clicks on the button, 
+toggle between hiding and showing the dropdown content */
+function myFunction() {
+    document.getElementById("myDropdown").classList.toggle("show");
+}
+
+// Close the dropdown menu if the user clicks outside of it
+window.onclick = function(event) {
+  if (!event.target.matches('.dropbtn')) {
+
+    var dropdowns = document.getElementsByClassName("dropdown-content");
+    var i;
+    for (i = 0; i < dropdowns.length; i++) {
+      var openDropdown = dropdowns[i];
+      if (openDropdown.classList.contains('show')) {
+        openDropdown.classList.remove('show');
+      }
+    }
+  }
+}
+
+
+Reverb                   //
+Delay                     //
+
+Reverb                   //
+
+Lowpass Filter            // freq Q
+Highpass Filter           // freq Q
+Bandpass Filter           // freq Q
+Lowshelf Filter           // freq gain
+Highshelf Filter          // freq gain
+Peaking Filter            // freq Q gain
+Notch Filter              // freq Q
+Allpass Filter            // freq Q
+
+
+DelayNode  myDelay.delayTime.value = 3.0;
+
+            if (whereX < canvToFill.start || whereX > canvToFill.end + 0.0001) {
+                console.log(
+                    'whereX out of range: ' +
+                        whereX +
+                        ' start: ' +
+                        canvToFill.start +
+                        ' end: ' +
+                        canvToFill.end
+                );
+            }
+
+// console.log("imaging: " + whereX + " " + can.left + " " + can.canvasWidth + " " + canvToFill.start + " " + canvToFill.end);
+
+<!--
+<script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="js/handlebars.min.js"></script>
+
+<script type="text/javascript" src="js/ext/clipboard.js"></script>
+<script type="text/javascript" src="js/ext/tippy.all.min.js"></script>
+<script type="text/javascript" src="js/ext/plugins/wavesurfer.mediasession.js"></script>
+
+
+
+<script type="text/javascript" src="js/wavesurfer.js"></script>
+<script type="text/javascript" src="js/plugins/wavesurfer.tiledrenderer.js"></script>
+<script type="text/javascript" src="js/plugins/wavesurfer.regions.js"></script>
+<script type="text/javascript" src="js/plugins/wavesurfer.timeline.js"></script>
+<script type="text/javascript" src="js/plugins/wavesurfer.minimap.js"></script>
+<script type="text/javascript" src="js/jquery.knob.js"></script>
+<script type="text/javascript" src="js/nouislider.js"></script>
+<script type="text/javascript" src="templates.js"></script>
+-->
+const path = require('path');
+
+module.exports = {
+  entry: './src/viewWAV.js',
+  devtool: 'inline-source-map',
+  output: {
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, './')
+  }
+};
+
+
+var testFilterGraph = function (ctx)
+{
+	//set up the different audio nodes we will use for the app
+	let analyser = ctx.createAnalyser();
+	let distortion = ctx.createWaveShaper();
+	let gainNode = ctx.createGain();
+	let biquadFilter = ctx.createBiquadFilter();
+	let convolver = ctx.createConvolver();
+
+	biquadFilter.type = "lowshelf";
+	biquadFilter.frequency.value = 1000; //.setValueAtTime(1000, ctx.currentTime);
+	biquadFilter.gain.value = 25; // .setValueAtTime(25, ctx.currentTime);
+
+	let filtList = [analyser, distortion, biquadFilter, gainNode];
+	return filtList;
+}
+
+
+function testOfflineContext(e) {
+	applyFilterTransform(testFilterGraph);
+}
+
+startGuiCheck
+
+$('#openfilter').on('click', e=>{openFilter('filter')});
+
+function closeDropDown() {
+	$(".dropdown-content").removeClass('show');
+}
+
+
+function openFilter(filterName) {
+	closeDropDown();
+	if (filterName === 'filter') {
+		testFilterButton();
+	}
+}
+        // let t1 = performance.now();
+        // let dT = t1 - t0;
+        // console.log(dT);
+
+
+// disconnectFilters
+// setFilters (listoffilters);
+
+
+
+
+// Apply a filter transform implemented using the AudioContext filter system to the selected area
+// and paste back the result.
+// the setup function is called to knit together the filter graph desired.
+function applyFilterTransform(setup)
+{
+	let working = this.wave.copySelected();
+	let ctx = createOfflineContext(working);
+	
+	let filters = this.
+	
+	if (setup !== undefined) {
+		filters = setup(ctx, working);
+	} 
+
+	let source = ctx.createBufferSource();
+	connectChain(source, ctx, filterChain);
+
+	// Connect all filters in the filter chain.
+	let prevFilter = source;
+	if (filters) {
+		for (var i = 0; i < filters.length; ++i) {
+			let thisFilter = filters[i];
+			prevFilter.connect(thisFilter);
+			prevFilter = thisFilter;
+		}
+	}
+	prevFilter.connect(ctx.destination);
+
+	source.buffer = working;
+	source.start();
+
+	ctx.oncomplete = function (e) {
+		pasteSelected(e.renderedBuffer);
+	}
+	ctx.startRendering();
+
+/*
+	ctx.startRendering().then(function(renderedBuffer) {
+		pasteSelected(renderedBuffer);
+	}).catch(function(err) {
+		alert('Rendering failed: ' + err);
+	});
+*/
+}
+
+
+/*
+	$('#fl_cancel').on('click', e=>{
+		$('#procmods').empty();
+		wave.backend.setFilters();
+	});
+
+	$('#fl_audition').on('click', e=>{
+		if (e.target.checked) {
+			wave.backend.setFilters([biquadFilter]);
+		} else {
+			wave.backend.setFilters();
+		}
+	});
+
+	$('#fl_apply').on('click', e=>{
+		$('#fl_audition').prop('checked', false);
+		applyFilterTransform(function (ctx) {
+			let bqf = ctx.createBiquadFilter();
+			bqf.type = biquadFilter.type;
+			bqf.frequency.value = biquadFilter.frequency.value;
+			bqf.detune.value = biquadFilter.detune.value;
+			bqf.Q.value = biquadFilter.Q.value;
+			bqf.gain.value = biquadFilter.gain.value;
+			return [bqf];
+		});
+
+		wave.backend.setFilters();
+	});
+
+
+
+*/
+
+
+<meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';">
+
+default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';
+
+
+
+var pasteSelected = function (pasteData, checkInsert)
+{
+	let buffer = wave.backend.buffer;
+
+	let {regional, cursorTime, cursorPos, length, first, last, region} = wave.getSelection();
+
+	if (checkInsert && !regional) { // regionl === false means its an insertion point.
+		first = cursorPos;
+		last = cursorPos;
+	}
+
+	let pasteLen = pasteData.getChannelData(0).length;
+	let dTs = last - first;
+	let {numberOfChannels, sampleRate} = buffer;
+	let numPasteChannels = pasteData.numberOfChannels;
+	let bufLen = length - dTs + pasteLen;
+	let nextBuffer = audioCtx.createBuffer(numberOfChannels, bufLen, sampleRate);
+
+	for (var cx = 0; cx < numberOfChannels; ++cx) {
+		let sa = buffer.getChannelData(cx);
+		let da = nextBuffer.getChannelData(cx);
+		let pdx = cx < numPasteChannels ? cx : 0;
+		let cb = pasteData.getChannelData(pdx);
+		let dx = 0;
+		for(var i = 0; i < first; ++i) {
+			da[dx++] = sa[i];
+		}
+
+		for(var i = 0; i < pasteLen; ++i) {
+			da[dx++] = cb[i];
+		}
+
+		for(var i = last; i < length; ++i) {
+			da[dx++] = sa[i];
+		}
+	}
+	//if(region) region.remove();
+	undoStack.push(buffer);
+	wave.changeBuffer(nextBuffer);
+}
+
+
+
+var copySelected = function (e)
+{
+	let buffer = wave.backend.buffer;
+	let {length, first, last, region} = wave.getSelection();
+	let ds = last - first;
+	let {numberOfChannels, sampleRate} = buffer;
+	let nextBuffer = audioCtx.createBuffer(numberOfChannels, ds, sampleRate);
+
+	for (var cx = 0; cx < numberOfChannels; ++cx) {
+		let sa = buffer.getChannelData(cx);
+		let da = nextBuffer.getChannelData(cx);
+		let dx = 0;
+		for(var i = first; i < last; ++i) {
+			da[dx++] = sa[i];
+		}
+	}
+	return nextBuffer;
+}
+
+var createOfflineContext  = function (buffer) {
+	let {numberOfChannels, sampleRate} = buffer;
+	return new OfflineContext(numberOfChannels, buffer.getChannelData(0).length, sampleRate);
+}
+
+
+var testFilterButton = function(e)
+{
+	let biquadFilter = wave.audioContext.createBiquadFilter();
+	let filterGUI = quadfilter_template();
+	$('#procmods').empty();
+	wave.backend.setFilters();
+	$('#procmods').append (filterGUI);
+	let filterDrop = new Dropdown('#quaddropdn',undefined,function (e) {
+		let targID = e.target.getAttribute('id');
+		let targText = e.target.innerText;
+		let fname = targID.substring(3);
+		biquadFilter.type = fname;
+		let namef = $('#quaddropdn');
+		$(namef[0].firstChild).text(targText);
+	});
+	$(".dial").knob({change: function (v) {
+		let inp = this.i[0];
+		let ctlId = inp.getAttribute('id').substring(3);
+//		if (ctlId === 'gain') {
+//			biquadFilter.gain.value = v;
+//		} else {
+			biquadFilter[ctlId].value = v;
+//		}
+//		console.log(ctlId + " " + v);
+	}  });
+	/*
+	$('#qf_type').change( e=> {
+		let picked = $("select option:selected" )[0];
+		let fkind = $(picked).text();
+		biquadFilter.type = fkind;
+		//console.log($(picked).text());
+	});
+	*/
+	$('#fl_cancel').on('click', e=>{
+		$('#procmods').empty();
+		wave.backend.setFilters();
+	});
+
+	$('#fl_audition').on('click', e=>{
+		if (e.target.checked) {
+			wave.backend.setFilters([biquadFilter]);
+		} else {
+			wave.backend.setFilters();
+		}
+	});
+
+	$('#fl_apply').on('click', e=>{
+		$('#fl_audition').prop('checked', false);
+		applyFilterTransform(function (ctx) {
+			let bqf = ctx.createBiquadFilter();
+			bqf.type = biquadFilter.type;
+			bqf.frequency.value = biquadFilter.frequency.value;
+			bqf.detune.value = biquadFilter.detune.value;
+			bqf.Q.value = biquadFilter.Q.value;
+			bqf.gain.value = biquadFilter.gain.value;
+			return [bqf];
+		});
+
+		wave.backend.setFilters();
+	});
+	wave.backend.setFilters([biquadFilter]);
+}
+
+
+// Apply a filter transform implemented using the AudioContext filter system to the selected area
+// and paste back the result.
+// the setup function is called to knit together the filter graph desired.
+function applyFilterTransform(setup)
+{
+	let working = copySelected();
+	let ctx = createOfflineContext(working);
+	
+	let filters;
+	
+	if (setup !== undefined) {
+		filters = setup(ctx, working);
+	} 
+	
+	let source = ctx.createBufferSource();
+
+	// Connect all filters in the filter chain.
+	let prevFilter = source;
+	if (filters) {
+		for (var i = 0; i < filters.length; ++i) {
+			let thisFilter = filters[i];
+			prevFilter.connect(thisFilter);
+			prevFilter = thisFilter;
+		}
+	}
+	prevFilter.connect(ctx.destination);
+
+	source.buffer = working;
+	source.start();
+
+	ctx.oncomplete = function (e) {
+		pasteSelected(e.renderedBuffer);
+	}
+	ctx.startRendering();
+/*
+	ctx.startRendering().then(function(renderedBuffer) {
+		pasteSelected(renderedBuffer);
+	}).catch(function(err) {
+		alert('Rendering failed: ' + err);
+	});
+*/
+}
+/*
+function connectChain(source, destination, ctx, filters)
+{
+	let prevFilter = source;
+	if (filters) {
+		for (var i = 0; i < filters.length; ++i) {
+			let thisFilter = filters[i];
+			prevFilter.connect(thisFilter);
+			prevFilter = thisFilter;
+		}
+	}
+	prevFilter.connect(destination);
+}
+*/
+
+
+//-------keyin--------
+document.onkeydown = function (e){
+	if(!e) e = window.event;
+
+	if(e.keyCode == 112) //F1
+	{
+		this.btn_save();
+		return false;		
+	}
+
+	if(e.keyCode == 123) //F12
+	{
+		this.btn_load();
+		return false;		
+	}
+};
+
+
+<!--
+<div>
+    <div class="col-xs-1">
+      <i class="glyphicon glyphicon-zoom-in"></i>
+    </div>
+
+    <div class="col-xs-10">
+      <input id="slider" type="range" min="1" max="200" value="1" style="width: 100%" />
+    </div>
+
+    <div class="col-xs-1">
+      <i class="glyphicon glyphicon-zoom-out"></i>
+    </div>
+  </p>
+</div>
+-->
+
+http://middleearmedia.com/web-audio-api-convolver-node/
+
+createAnalyserNode
+createVolumeNode
+
+Powerful and Multi-Functional jQuery Folder Tree Plugin - zTree
+https://www.jqueryscript.net/other/Ajax-File-Tree-Plugin-jQuery-jsFiler.html
+ jQuery File Tree
+ Free Web File Manager
+elFinder
+
+viewWAV.js sections:
+
+
+Undo Stack
+
+Open Wave Tracker
+
+Wave Tracker GUI
+
+Dropdown menu
+
+Filter Host
+
+Cut/Copy/Paste/Manipulate
+
+Base64
+
+GUI manager
+
+Load/Save
+
+
+
+	<!--
+	uppie(document.querySelector('#uploader'), function (event, formData, files) {
+	var flist = [];
+	for (var [key, value] of formData.entries()) { if(key === 'files[]') flist.push(value); }
+	uploadNext(flist);
+
+});
+	-->
+	
+	
+// Callback Function for sort()
+function cmptime(a, b) {
+	if( a["fdate"] == b["fdate"] ) {
+		return Math.sign(a["ftime"] - b["ftime"]) * sortOrder;
+	}else {
+		return Math.sign(a["fdate"] - b["fdate"]) * sortOrder;
+	}
+}
+
+// Callback Function for sort by name
+function cmpfname(a, b) {
+	if (!a["fname"]) return 0;
+	return a["fname"].localeCompare(b["fname"]) * sortOrder;
+
+}
+
+// Callback Function for sort by size
+function cmpfsize(a, b) {
+	return Math.sign(a["fsize"] - b["fsize"]) * sortOrder;
+
+}
+
+// var uppie = new Uppie();
+
+var sortFunctionTab = [cmpfname, cmptime, cmpfsize];
+	
+	
+
+
+			filelink.on('click', (e)=>{that.opensp(file["r_uri"] + '/' + file["fname"], false)});
+			if (ext === 'lua' && INCLUDE_FTLE) {
+				caption2 = "<font color='#FF0000'>Edit Lua</font>";
+				filelink2.addClass("file").attr('href', "javascript:openedit('"+file["r_uri"] + '/' + file["fname"]+"')");
+				filelink2.on('click', (e)=>{that.openedit(file["r_uri"] + '/' + file["fname"], false)});
+
+			}
+			if (editWhiteListSet.has(ext)) {
+				caption2 = "<font color='#FF0000'>Edit</font>";
+				filelink2.addClass("file").attr('href', "javascript:openedit('"+file["r_uri"] + '/' + file["fname"]+"')");
+								filelink2.on('click', (e)=>{that.openedit(file[file["r_uri"] + '/' + file["fname"], false)});
+			}
+			
+			
+	  "scripts": {
+    "start": "npm run build:plugins && npm run build:htmlinit && webpack-dev-server --config ./build-config/webpack.dev.main.js",
+    "start:htmlinit": "npm run build:main && npm run build:plugins && webpack-dev-server --config ./build-config/webpack.dev.htmlinit.js",
+    "start:plugins": "npm run build:main && npm run build:htmlinit && webpack-dev-server --config ./build-config/webpack.dev.plugins.js",
+    "build": "npm run build:normal && npm run build:minified",
+    "build:main": "webpack --config ./build-config/webpack.prod.main.js",
+    "build:main:min": "webpack --config ./build-config/webpack.prod.main.min.js",
+    "build:plugins": "webpack --config ./build-config/webpack.prod.plugins.js",
+    "build:plugins:min": "webpack --config ./build-config/webpack.prod.plugins.min.js",
+    "build:htmlinit": "webpack --config ./build-config/webpack.prod.htmlinit.js",
+    "build:htmlinit:min": "webpack --config ./build-config/webpack.prod.htmlinit.min.js",
+    "build:normal": "npm run build:main && npm run build:plugins && npm run build:htmlinit",
+    "build:minified": "npm run build:main:min && npm run build:plugins:min && npm run build:htmlinit:min",
+    "format": "prettier 'src/**/*.js*' 'example/**/*.js*' 'spec/**/*.js*' 'website/**/*.js*' 'build-config/**/*.js' karma.conf.js --write",
+    "lint": "npm run lint:js && npm run lint:html",
+    "lint:js": "eslint src example spec website",
+    "lint:html": "htmlhint example",
+    "lint-and-format-staged": "lint-staged",
+    "doc": "esdoc",
+    "test": "karma start karma.conf.js",
+    "prepublish": "not-in-install && npm run build || in-install"
+  },
+  
+  
+  
+	let aBuf = this.wave.backend.buffer;
+	let saveData = audioBufferToWav(aBuf);
+	this.saveFile(this.fname, saveData);
+	
+		var urlarg = location.search.substring(1);
+	if(urlarg != "")
+	{
+		// Decode and assign to file name box
+		homeDoc.filename_input.value = decodeURI(urlarg);
+	}
+
+	
+cp /Volumes/NO\ NAME/DR/waverly/waverly.js .
+cp -r /Users/jamie/deluge/downrush/DR/waverly /Volumes/NO\ NAME/DR/
+
+
+<script>
+// Get the modal
+var modal = document.getElementById('myModal');
+
+// Get the button that opens the modal
+var btn = document.getElementById("myBtn");
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+// When the user clicks the button, open the modal 
+btn.onclick = function() {
+    modal.style.display = "block";
+}
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function() {
+    modal.style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+</script>
+
+.dblclick(=>)
+
+//-------keyin--------
+document.onkeydown = function (e){
+	if(!e) e = window.event;
+
+	if(e.keyCode == 112) //F1
+	{
+		btn_save();
+		return false;		
+	}
+
+	if(e.keyCode == 123) //F12
+	{
+		btn_load();
+		return false;		
+	}
+};
+
+<script type="text/javascript" src="js/ext/jquery-3.2.1.min.js"></script>
+<script type="text/javascript" src="js/ext/handlebars.min.js"></script>
+<script type="text/javascript" src="js/ext/clipboard.min.js"></script>
+<script type="text/javascript" src="js/ext/tippy.all.min.js"></script>
+<script type="text/javascript" src="js/loc/delugepatches.js"></script>
+<script type="text/javascript" src="templates.js"></script>
+
+/*
+window.onbeforeunload = function(event){
+	if(unexpected_close && !jsEditor.isClean())
+	{
+		event = event || window.event;
+		event.returnValue = "Exit?";
+	}
+}
+*/
+
+
+
+//Workerに投げる
+function postWorker(mode)
+{
+	var saveText  = "";
+	if(mode === 'save' && jsonDocument.song) {
+		let headerStr = '<?xml version="1.0" encoding="UTF-8"?>\n';
+		if (firmwareVersionFound) {
+			headerStr += firmwareVersionFound + "\n";
+		}
+		saveText = headerStr + jsonToXMLString("song", jsonDocument.song);
+		// Uncomment below to avoid actual disk writing.
+		// console.log(saveText);
+		// return;
+	}
+	// Set CRLF to LF and then to CRLF. (LF also becomes CRLF)
+	//var code_body_lf = code_body.replace(/\r\n/g,"\n").replace(/\n/g,"\r\n");
+
+	var msg = {
+		filepath: filename_input.value,
+		arg: "", // arg_input.value,
+		mode: mode,
+		edit: saveText,
+	};
+	worker.postMessage(msg);
+}
+
+//------------Worker---------------
+if (!local_exec && !window.Worker) {
+	alert("Web Worker disabled! Editor won't work!")
+}
+
+var worker;
+
+if (!local_exec) {
+try {
+	worker = new Worker("XMLworker.js");
+}catch (e) {
+	addStat("Exception!(UI): "+e.message);
+}
+worker.onmessage = function(e) {
+	// RPC outfitting
+
+	//debug
+	if(e.data.func == "console.log")
+	{
+		console.log(e.data.arg);
+	}
+	if(e.data.func == "clearStatus")
+	{
+		clrStat();
+	}
+	if(e.data.func == "addStatus" || e.data.func == "setResponse")
+	{
+		addStat(e.data.arg);
+	}
+	if(e.data.func == "setEditor")
+	{
+		setEditText(e.data.arg);
+	}
+	if(e.data.func == "setLineHighlight")
+	{
+		setLineHighlight(e.data.arg);
+	}
+};
+
+}
+
+input[type="button"] {
+	width:120px;
+	height:24px;
+	-webkit-appearance: none;
+	padding:0%;
+    text-decoration:none;
+    display:inline;
+    color:#000;
+    background-color:#EEEEEE;
+    border-radius:2px;
+    box-shadow:1px 1px 1px #7F7F7F;
+}
+
+class DRObject {
+
+};
+
+
+class Sound extends DRObject {
+
+};
+
+class Kit extends DRObject {
+
+};
+
+class Track extends DRObject {
+
+};
+
+
+class Song extends DRObject {
+
+};
+
+
+
+
+cp /Volumes/NO\ NAME/DR/waverly/waverly.js .
+cp -r /Users/jamie/deluge/downrush/DR/waverly /Volumes/NO\ NAME/DR/
+
+	fname = filename_input.value;
+	
+	pandoc -f markdown -t plain --wrap=none file.md -o file.txt
+	
+	
+	pandoc -f markdown -t plain --wrap=none README.md -o README.txt
+	
+	
+	function isObjectWhat to do now:
+
+Place your FlashAir card into your Synthstrom Deluge and power on.
+
+Place your external computer/tablet/phone within 2 meters of your Synthstrom Deluge.
+
+To connect to the card in your browser (Chrome recommended), do the following:
+
+Wait 30 seconds for the card to boot up inside your Deluge. (It is
+slower the first time).
+
+Your SD card will advertise itself as a WiFi Access Point (AP). The
+name will look like this: flashair_ec21e5e2939f. (The code after the
+underscore will be different). Connect to it.
+
+When asked for a password, use 12345678.
+
+Type the following URL into the browser: http://flashair/ or
+http://192.168.0.1/
+
+If you have problems connecting to the FlashAir in the Deluge, you
+might try connecting to it while it is inserted into your computer.
+The file browser works in there too.
+
+I already copied over the KITS, SAMPLES, SYNTHS, and SONGS directories
+that come with a new Deluge. You will obviously want to copy your existing
+work from your current SD Card to the corresponding places on your
+FlashAir card. Dragging and dropping the whole set over works fine,
+you may have to approve overwritting what is already there and there is
+no harm in doing exactly that.
+
+You can use Downrush to do the copying if so desired. To do this, drag a
+folder from the source and drop it onto the yellow area of the File Manager
+screen. The SAMPLES directory can take 10 minutes to copy.
+
+There are two documentation files inside the DR folder. MANUAL.txt and
+README.txt. They are both a bit stale.
+
+If you encounter any problems, or have questions, please email me
+at jamie@fentonia.com
+
+Thanks!
+
+– Jamie Fenton
+ {
+    if (val === null) { return false;}
+    return ( (typeof val === 'function') || (typeof val === 'object') );
+}
+
+
+/*
+var nameToClassTab = {
+	'kit':		Kit,
+	'track':	Track,
+	'sound':	Sound,
+	'song':		Song
+};
+*/
+
+
+
+
+/*
+// JSON.parse reviver function that instantiates certain keys as classes.
+function reviveClass(k, v) {
+	let classToMake = nameToClassTab[k];
+	if (classToMake) {
+		if (Array.isArray(v)) {
+			for(var i = 0; i < v.length; ++i) {
+				v[i] = new classToMake(v[i]);
+			}
+			return v;
+		} else {
+			let nv = new classToMake(v);
+			return nv;
+		}
+	}
+	return v;
+}
+*/
+
+
+
+
+function plotKit(track, reftrack, obj) {
+	if(newNoteFormat) {
+		plotKit14(track, reftrack, obj);
+	} else {
+		plotKit13(track, reftrack, obj);
+	}
+}
+
+function plotTrack(track, obj) {
+	if(newNoteFormat) {
+		plotTrack14(track, obj);
+	} else {
+		plotTrack13(track, obj);
+	}
+}
+
+
+
+// Variables to convert to instance variables for an object.
+//var fname = "";
+//var jsonDocument;
+//var firmwareVersionFound = '';
+//var newNoteFormat = false;
+
+
+
+
+	let divID = '#snd_place' + trn;
+	
+	
+			html: '#npoptemp',
+
+		let ta =$("#paster")[0];
+
+	let pasteel = $("#paster");
+		$('#iosSubmit').on('click', pasteTrackios);
+
+		$('#paster').on('paste', pasteTrack);
+
+
+	let isChecked = $("#showdrums").is(':checked');
+	$('#samprepplace table').remove();
+	sampleReport(track, isChecked, $('#samprepplace'));
+	$('#showdrums').on('click', function () {
+		genSampleReport(track);
+
+	$('#fileTitle').html(fname);
+
+	$('#jtab').empty();
+	jsonToTopTable(jsonDocument, $('#jtab'));
+
+		$('#filegroup').remove();
+		$('#filegroupplace').append(local_exec_head());
+		$('#jtab').append (local_exec_info());
+		$('#opener').on('change', openLocal);
+
+	$("#statind").text("Loading: " +  fname);
+
+		$("#statind").text(fname + " loaded.");
+		$("#statind").text(filepath + " saved.");
+		$("#statind").text(filepath + " " + percentComplete + "%");
+
+
+// 
+		<div id='popupspot'></div>
+		<div id='fileTitle'></div>
+		<p class='tinygap'/>
+		<div id='jtab'> </div>
+		
+		
+		            for (int i = runBase; i < cursor - 3; ++i) {
+                if (s.charAt(i) != s.charAt(i + 1)
+                        && s.charAt(i) == s.charAt(i + 3)
+                        && s.charAt(i + 1) == s.charAt(i + 2))
+                            {
+                                return false;
+                            }
+            }
+// ToDo
+
+// All these can use ids with doc#
+
+paster
+showdrums
+
+// Done
+snd_place
+fileTitle
+jtab
+
+npoptemp
+iosSubmit
+popupspot
+
+
+// Root class for all view/controllers
+class DRView {
+	constructor(inits) {
+		if(inits) {
+			Object.assign(this, inits);
+		}
+	}
+};
+
+
+const path = require('path');
+
+module.exports = {
+  entry: './src/viewXML.js',
+  devtool: 'inline-source-map',
+  watch: true,
+  watchOptions: {ignored: 'node_modules/'},
+  output: {
+    filename: 'viewXML.js',
+//    path: path.resolve(__dirname, './')
+    path: "/Volumes/NO NAME/DR/xmlView"
+  },
+  module: {
+      rules: [
+      {
+        test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader"
+        }
+      }
+    ]
+  },
+};
+
+
+import PropTypes from 'prop-types';
+
+import React from 'react';
+
+export default class App extends React.Component {
+    render(){
+       return(
+           <div>
+               <h1> the list  </h1>
+           </div>   
+        )
+     }
+}
+
+import createClass from "create-react-class";
+import React from 'react';
+//import ReactDOM from "react-dom";
+var SampleEntry = createClass({
+  render: function() {
+	return <h3>Meow{this.props.osc1.fileName}</h3>
+  },
+  });
+	/*
+		<tr className="kitentry" contentEditable="true">
+		  <td className="kit_opener" kititem="{this.props.index}">►</td>
+		  <td>name</td>
+		  <td style={{textAlign: 'left'}}>{this.props.osc1.fileName}</td>
+		  <td className="startms">{this.props.osc1.zone.startMilliseconds}</td>
+		  <td className="endms">{this.props.osc1.zone.endMilliseconds}</td>
+		  <td><audio controls className="smallplayer" preload="none" style={{backgroundColor: 'blue'}}><source src="sample_path_prefix{this.props.osc1.fileName}" type="audio/wav" /></audio></td>
+		</tr>
+		if (this.props.osc2.fileName) {
+		<tr><td colSpan={2} />
+		  <td>{this.props.osc2.fileName</td>
+		  <td className="startms2">{this.props.osc2.zone.startMilliseconds}</td>
+		  <td className="endmms2">{this.props.osc2.zone.endMilliseconds}</td>
+		  <td><controls audio className="smallplayer" preload="none"><source src="sample_path_prefix{this.props.osc2.fileName}" type="audio/wav" /></controls></td>
+		</tr>
+		}
+	<div className="kit_spot"> </div>`);
+	);
+  }
+});
+*/
+/*
+function placeSE(anEl) {
+  ReactDOM.render(<SampleEntry/>, anEl);
+}
+*/
+let placeSE = function() {};
+export {SampleEntry, placeSE};
+
+
+		{if (this.props.osc2.fileName) {} {
+		<tr><td colSpan={2} />
+		  <td>{this.props.osc2.fileName}</td>
+		  <td className="startms2">{this.props.osc2.zone.startMilliseconds}</td>
+		  <td className="endmms2">{this.props.osc2.zone.endMilliseconds}</td>
+		  <td><controls audio className="smallplayer" preload="none"><source src="sample_path_prefix{this.props.osc2.fileName}" type="audio/wav" /></controls></td>
+		</tr>
+		}
+		
+		<tr className="kitentry" contentEditable="true">
+
+/*
+this.setState((prevState, props) => {
+  return { count: prevState.count + 1 }
+});
+*/
+    this.handleFilterTextChange = this.handleFilterTextChange.bind(this);
+    
+<meta http-equiv="Cache-control" content="public">
+
+render(...): It looks like the React-rendered content of this container was removed without using React.
+This is not supported and will cause errors. Instead, call ReactDOM.unmountComponentAtNode to empty a container.
+		let {start, end} = this.wave.getSelection();
+		// console.log("S: " + start + " E: " + end);
+		/*
+		this.kitSound.osc1.zone.startMilliseconds = Math.round(start * 1000);
+		this.kitSound.osc1.zone.endMilliseconds = Math.round(end * 1000);
+
+		let soundE = $(w.rootDivId).closest('.soundentry')[0];
+		let soundHdr = soundE.previousElementSibling;
+		let textEl = $('.startms', soundHdr);
+		$(textEl).text(fmtTime3(start));
+		$('.endms', soundHdr).text(fmtTime3(end));
+		*/
+
+
+  jsonToTopTable(jdoc, obj)
+{
+	$(this.idFor('fileTitle')).html(this.fname);
+	let json = jdoc.jsonDocument;
+	if(json['song']) {
+		formatSong(jdoc, obj);
+	} else if(json['sound']) {
+		formatSound(obj, json.sound, json.sound.defaultParams, json.sound.soundParams);
+	} else if(json['kit']) {
+		let wherePut = $(this.idFpr('jtab'))[0];
+		formatKit(json.kit, json.kitParams, wherePut);
+	} else {
+		jsonToTable(json, obj);
+	}
+}
+
+  renderAudioControls(osc) {
+ 	return (<td><audio controls className="tinyplayer" preload="none" 
+ 	style={{backgroundColor: 'blue'}}><source src={'/' + osc.fileName} type="audio/wav" /></audio></td>);
+  }
+
+  renderExpandedAudioControls(osc) {
+ 	return (<td><audio controls className="tinyplayer" preload="none" 
+ 	style={{backgroundColor: 'blue'}}><source src={'/' + osc.fileName} type="audio/wav" /></audio></td>);
+  }
+
+  renderHeader() {
+    return (
+  		<tr className="kitentry" key='sinfo'>
+		  <td className="kit_open" kititem={this.props.index}><WedgeIndicator openned={this.state.openned} toggler={e=>{this.setState((prevState, props) =>{
+		  	return  {openned: !prevState.openned}})}}/></td>
+		  <td>{this.props.name}</td>
+		  <td style={{textAlign: 'left'}}>{this.props.osc1.fileName}</td>
+		  <td className="startms">{fmtTime(this.props.osc1.zone.startMilliseconds)}</td>
+		  <td className="endms">{fmtTime(this.props.osc1.zone.endMilliseconds)}</td>
+		  <td className="loopMode">{loopModeTab[this.props.osc1.loopMode]}</td>
+		  {this.state.openned ? this.renderExpandedAudioControls(this.props.osc1) : this.renderAudioControls(this.props.osc1)}
+		</tr>);
+  }
+
+
+
+
+  render() {
+  	let da = [
+		<tr className="kitentry" key='sinfo'>
+		  <td className="kit_open" kititem={this.props.index}><WedgeIndicator openned={this.state.openned} toggler={e=>{this.setState((prevState, props) =>{
+		  	return  {openned: !prevState.openned}})}}/></td>
+		  <td>{this.props.name}</td>
+		  <td style={{textAlign: 'left'}}>{this.props.osc1.fileName}</td>
+		  <td className="startms">{fmtTime(this.props.osc1.zone.startMilliseconds)}</td>
+		  <td className="endms">{fmtTime(this.props.osc1.zone.endMilliseconds)}</td>
+		  <td className="loopMode">{loopModeTab[this.props.osc1.loopMode]}</td>
+		  <td><audio controls className="smallplayer" preload="none" style={{backgroundColor: 'blue'}}><source src={'/' + this.props.osc1.fileName} type="audio/wav" /></audio></td>
+		</tr>];
+	if (this.state.openned) {
+		da.push(<WaveView key='wview' kitProps={this.props} selectionUpdate={this.props.selectionUpdate} />);
+	}
+	return da;
+  }
+
+/*
+  constructor(fname, kitSound, whenDone) {
+	this.fname = fname;
+	this.idNumber = gIdCounter++;
+
+	this.homeId = this.idFor(name);
+	this.kitSound = kitSound;
+	this.whenDone = whenDone;
+	this.waveElement = wavegroup_template({idsuffix: this.idNumber});
+  }
+*/
+
+Array.isArrayNative = Array.isArray;
+Array.isArray = function isArray(...args) {
+return Array.isArrayNative(...args) || isObservableArray(...args);
+};
+
+var sample_entry_template = Handlebars.compile(`<tr class='kitentry' contenteditable='true'>
+<td class='kit_opener' kitItem='{{index}}'>&#x25BA</td>
+<td>{{name}}</td>
+<td style='text-align: left'>{{osc1.fileName}}</td>
+<td class='startms'>{{fmttime osc1.zone.startMilliseconds}}</td>
+<td class='endms'>{{fmttime osc1.zone.endMilliseconds}}</td>
+<td><audio controls class='smallplayer' preload='none' style='background-color: blue'><source src='{{sample_path_prefix}}{{osc1.fileName}}' type='audio/wav'></audio></td>
+</tr>
+{{#if osc2.fileName}}
+<tr><td colspan='2'></td>
+<td>{{osc2.fileName}}</td>
+<td class='startms2'>{{fmttime osc2.zone.startMilliseconds}}</td>
+<td class='endmms2'>{{fmttime osc2.zone.endMilliseconds}}</td>
+<td><controls audio class='smallplayer'  preload='none'><source src='{{sample_path_prefix}}{{osc2.fileName}}' type='audio/wav'></audio></td>
+</tr>
+{{/if}}
+<div class='kit_spot'> <div>`);
+
+	{hasOsc2 ? (<SampleEntry className='kitentry' index={this.props.index} key='osc2' osc={this.props.osc1} />)  : null}
+	
+	
+		<SampleEntry className='kitentry' index={this.props.index} name={this.props.name} osc={this.props.osc1} />
+	<SampleEntry className='kitentry' index={this.props.index} name={this.props.name} osc={this.props.osc2} />
+	
+	
+	
+	
+   return <React.Fragment>
+		<tr className="kitentry" >
+		  <td className="kit_open" kititem={this.props.index}><WedgeIndicator openned={this.state.openned} toggler={e=>{this.setState((prevState, props) =>{
+		  	return  {openned: !prevState.openned}})}}/></td>
+		  <td>{this.props.name}</td>
+		  <td style={{textAlign: 'left'}}>{this.props.osc.fileName}</td>
+		  <td className="startms">{fmtTime(this.props.osc.zone.startMilliseconds)}</td>
+		  <td className="endms">{fmtTime(this.props.osc.zone.endMilliseconds)}</td>
+		  <td className="loopMode" onClick={(e)=>{this.doClick(e)}}>{loopModeTab[this.props.osc.loopMode]}</td>
+		  <td><audio controls className="smallplayer" preload="none" style={{backgroundColor: 'blue'}}><source src={'/' + this.props.osc.fileName} type="audio/wav" /></audio></td>
+		</tr>
+		//{this.state.openned ? (<WaveView osc={this.props.osc} selectionUpdate={this.selectionUpdate.bind(this)} />) : null}
+   </React.Fragment>
+   
+   
+   		  <td className="loopMode" onClick={(e)=>{this.doClick(e)}}>{loopModeTab[this.props.osc.loopMode]}</td>
+   		  
+   		  
+   		 <td className='loopMode'><LoopMenu item={loopModeTab[this.props.osc.loopMode]} /></td>
+   		 
+  doClick(e) {
+  	this.props.osc.loopMode = (this.props.osc.loopMode) + 1 & 3;
+  }
+		  <td>{this.props.name}</td>
+		  
+		  
+		  
+		  
+		  Expires: Thu, 01 Dec 2030 16:00:00 GMT
+		  
+		  
+<meta http-equiv="Expires" content="Thu, 01 Dec 2030 16:00:00 GMT">
+<meta http-equiv="If-Modified-Since" content="Thu, 01 Dec 2018 16:00:00 GMT">
+Wed, 11 Apr 2018 22:20:42 GMT
+
+ETag: W/"1621-4c8b7b59"
+
+ETag: W/"1621-4c8b7b59"
+ETag: W/"1199-4c8b7b8c"
+W/"1199-4c8b7b8c"
+ETag: W/"1803947-4c8b79d3"
+ETag: W/"1803947-4c8b79d3"
+
+
+
+  renderOpen() {
+     const defaultOption = loopModeTab[this.props.osc.loopMode];
+     return (
+     <React.Fragment>)
+  		<tr className="kitentry" key='sinfo'>
+		  <td className="kit_open" kititem={this.props.index}><WedgeIndicator openned={this.state.openned} toggler={e=>{this.setState((prevState, props) =>{
+		  	return  {openned: !prevState.openned}})}}/></td>
+		  	<td><Dropdown options={KIT_SOUND_NAMES} onChange={(item)=>{this.onNameSelect(item)}} value={this.props.name} /></td>
+		  <td onClick={this.onChangeFilePath.bind(this)} style={{textAlign: 'left'}}>{this.props.osc.fileName}</td>
+	  	  <td className="startms">{fmtTime(this.props.osc.zone.startMilliseconds)}</td>
+		  <td className="endms">{fmtTime(this.props.osc.zone.endMilliseconds)}</td>
+		   <td><Dropdown options={loopModeTab} onChange={this.onLoopSelect.bind(this)} value={defaultOption} /></td>
+		  <td><PlayerControl fileName={this.props.osc.fileName}/></td>
+		</tr>
+		<WaveView key='wview' osc={this.props.osc} fname={this.props.osc.fileName} selectionUpdate={this.selectionUpdate.bind(this)} />
+   </React.Fragment>)
+  
+  }
+
+   return (
+     const defaultOption = loopModeTab[this.props.osc.loopMode];
+     return (
+     <React.Fragment>)
+		<tr className="kitentry" key='sinfo'>
+		  <td className="kit_open" kititem={this.props.index}><WedgeIndicator openned={this.state.openned} toggler={e=>{this.setState((prevState, props) =>{
+		  	return  {openned: !prevState.openned}})}}/></td>
+		  <td>{this.props.name}</td>
+		  <td style={{textAlign: 'left'}}>{this.props.osc.fileName}</td>)}
+	  	  <td className="startms">{fmtTime(this.props.osc.zone.startMilliseconds)}</td>
+		  <td className="endms">{fmtTime(this.props.osc.zone.endMilliseconds)}</td>
+		  <td className="loopMode">{defaultOption}</td>
+		  <td><PlayerControl fileName={this.props.osc.fileName}/></td>
+		</tr>
+		{this.state.openned ? (<WaveView key='wview' osc={this.props.osc} fname={this.props.osc.fileName} selectionUpdate={this.selectionUpdate.bind(this)} />) : null}
+   </React.Fragment>)
+ 
+ 
+ 
+   render() {
+   const defaultOption = loopModeTab[this.props.osc.loopMode];
+   return (<React.Fragment>
+		<tr className="kitentry" key='sinfo'>
+		  <td className="kit_open" kititem={this.props.index}><WedgeIndicator openned={this.state.openned} toggler={e=>{this.setState((prevState, props) =>{
+		  	return  {openned: !prevState.openned}})}}/></td>
+		  {this.state.openned ? (<td><Dropdown options={KIT_SOUND_NAMES} onChange={(item)=>{this.onNameSelect(item)}} value={this.props.name} /></td>)
+		  					  :  <td>{this.props.name}</td>}
+		  {this.state.openned ? (<td onClick={this.onChangeFilePath.bind(this)} style={{textAlign: 'left'}}>{this.props.osc.fileName}</td>)
+		  					  : (<td style={{textAlign: 'left'}}>{this.props.osc.fileName}</td>)}
+	  	  <td className="startms">{fmtTime(this.props.osc.zone.startMilliseconds)}</td>
+		  <td className="endms">{fmtTime(this.props.osc.zone.endMilliseconds)}</td>
+		   {this.state.openned ? (<td><Dropdown options={loopModeTab} onChange={this.onLoopSelect.bind(this)} value={defaultOption} /></td>)
+							: (<td className="loopMode">{defaultOption}</td>)}
+		  <td><PlayerControl fileName={this.props.osc.fileName}/></td>
+		</tr>
+		{this.state.openned ? (<WaveView key='wview' osc={this.props.osc} fname={this.props.osc.fileName} selectionUpdate={this.selectionUpdate.bind(this)} />) : null}
+   </React.Fragment>)
+  }
+
+
+
+If a component, when used, contains child React components or React nodes inside of the component
+ (e.g., <Parent><Child /></Parent> or <Parent><span>test<span></Parent>) these React node or 
+ component instances can be accessed by using this.props.children.
+
+
+/*
+	this.wave.surfer.on('start-end-change', (w, e)=>{
+		let {start, end} = this.wave.getSelection();
+		this.props.selectionUpdate(start, end);
+	});
+*/
+
+reportRef={r=>{this.noteRef('playCtrl', e)}
+
+
+/*
+  changeToFile() {
+	this.osc = this.props.osc;
+	this.filename = this.osc.fileName;
+	this.loadFile("/" + this.filename, (d)=>{
+		this.setEditData(d);
+	});
+  }
+*/
+
+
+
+   // Create file reader
+   var reader = new FileReader();
+   reader.addEventListener('progress', function (e) {
+       return _this10.onProgress(e);
+   });
+   reader.addEventListener('load', function (e) {
+       return _this10.loadArrayBuffer(e.target.result);
+   });
+   reader.addEventListener('error', function () {
+       return _this10.fireEvent('error', 'Error reading file');
+   });
+   reader.readAsArrayBuffer(blob);
+   this.empty();
+
+	loadArrayBuffer(arraybuffer) {
+	this.decodeArrayBuffer(arraybuffer, function (data) {
+	if (!_this9.isDestroyed) {
+		_this9.loadDecodedBuffer(data);
+	}
+});
+
+
+ key: 'decodeArrayBuffer',
+ value: function decodeArrayBuffer(arraybuffer, callback, errback) {
+     if (!this.offlineAc) {
+         this.offlineAc = this.getOfflineAudioContext(this.ac ? this.ac.sampleRate : 44100);
+     }
+     this.offlineAc.decodeAudioData(arraybuffer, function (data) {
+         return callback(data);
+     }, errback);
+ }
+
+
+let fileReader = new FileReader();
+let arrayBuffer;
+
+fileReader.onloadend = () => {
+    arrayBuffer = fileReader.result;
+	audioCtx.decodeAudioData(audioData, function(buffer) {
+ 		source.buffer = buffer;
+ 		source.connect(audioCtx.destination);
+		// ource.loop = true;
+	}
+},
+}
+
+fileReader.readAsArrayBuffer(superBlob);
+
+
+
+ audioCtx.decodeAudioData(audioData, function(buffer) {
+ source.buffer = buffer;
+ source.connect(audioCtx.destination);
+ source.loop = true;
+},
+
+	//$('.butn').mouseup(e=>{e.target.blur()});
+
+<td><PlayerControl fileName={this.props.osc.fileName} command={(e)=>{this.command('play', e)}}/></td>
+
+
+//Making Path
+  makePath(dir) {
+	var arrPath = this.currentPath.split('/');
+	if (this.currentPath == "/" ) {
+		arrPath.pop();
+	}
+	if ( dir == ".." ) {
+		// Go to parent directory. Remove last fragment.
+		if(arrPath.length > 0) arrPath.pop();
+	} else if ( dir != "" && dir != "." ) {
+		// Go to child directory. Append dir to the current path.
+		arrPath.push(dir);
+	}
+	if ( arrPath.length == 0 ) {
+		return "/";
+	}
+	return arrPath.join("/");
+  }
+
+	<th className='kit_opener xmltab' kititem='-1' onClick={this.newDrum.bind(this)}>+</th>
+	
+	
+	
+	let clip = e.originalEvent.clipboardData;
+
+	let clipBuff = this.wave.copySelected();
+	let wavData = audioBufferToWav(clipBuff);
+	let asText = base64ArrayBuffer(wavData);
+	localClipboard = clipBuff;
+	if (clip) clip.setData('text/plain', asText);
+	e.preventDefault();
+
+onPaste: function(e) {
+    console.log(e.clipboardData.getData('Text'));
+},
+
+
+<style>
+label textarea{
+ vertical-align: middle;
+}
+</style>
+
+<label>Paste kits:: <textarea>dura bura</textarea></label>
+
+
+  onChangeFilePath(e) {
+  	let initial = this.props.osc.fileName;
+  	if (!initial.startsWith('/')) initial = '/' + initial;
+	if (!initial) initial = '/';
+	let me = this; 
+	openFileBrowser({
+		initialPath:  initial,
+		opener: function(name) {
+			me.props.osc.fileName = name.startsWith('/') ? name.substring(1) : name;
+			me.props.osc.zone.endMilliseconds = -1; // trigger recalc of zone.
+		}
+	});
+  }
+
+const path = require('path');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+
+module.exports = {
+  entry: './src/viewXML.js',
+  watch: false,
+  output: {
+    filename: 'viewXML.js',
+	 path: path.resolve(__dirname, '../DR/xmlView/')
+  },
+  plugins: [
+    new UglifyJsPlugin()
+  ],
+  module: {
+      rules: [
+      {
+        test: /\.(jsx)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader"
+        }
+      }
+    ]
+  },
+};
+
+
+ toggleTab={this.toggleTab} showTab = {this.state.showTab}
+ 
+ 
+ this.waveViewRef.command(name, val, this);
+ 
+ 
+ +                       dragSelection: false,
+ 
+  addDrum(name) {
+	if(name.startsWith('/')) { 
+		name = name.slice(1);
+	}
+	let filledSoundT = empty_sound_template({fileName: name, name: 'USER'});
+	let newDrumX = getXmlDOMFromString(filledSoundT);
+	let newSound = xmlToJson(newDrumX).sound;
+	this.props.kitList.push(newSound);
+	// this.forceUpdate();
+  }
+  
+  
+  
+  newKitDoc(e) {
+	if(name.startsWith('/')) { 
+		name = name.slice(1);
+	}
+	let filledKitT = empty_kit_template();
+	let newKitX = getXmlDOMFromString(filledKitT);
+	let newSound = xmlToJson(newDrumX).sound;
+	this.props.kitList.push(newSound);
+	// this.forceUpdate();
+  }
+
+
+var pbd = ["KICK","kick","Kick","Bassdrum"];
+var psd = ["snare","SNARE","Snare", "SNAR"];
+var poh = ["Ohh","ophihat","Hhopen","hihatopen","open_hi_hat","Hatop","open_hi_hat","Hat_Open"];
+var pch = ["hihat",cl_hat","Hhclose","hihatclosed","hi_hat","closed_hi_hat","Hatclosed","hi_hat","Hat_Closed"];
+
+./Users/jamie/Downloads/LOOPMASTERS 4Gig Pack/
+./Applications/Ableton Live 9 Lite.app/Contents/App-Resources/Core Library/
+./Library/Application Support/GarageBand/Instrument Library/Sampler/
+
+find . -name '*.aaz' -delete
+
+javascript:void(0)
+
+
+		if (row.drumIndex) {
+			let rowInfo = kitList[row.drumIndex];
+			labName = rowInfo.name;
+			if (labName != undefined) {
+				let labdiv = $("<div class='kitlab'/>");
+				labdiv.text(labName);
+				labdiv.css({left: 0, bottom: (ypos - 2) + 'px'});
+				parentDiv.append(labdiv);
+			}
+		}
+
+save: function(filename, data) {
+    var blob = new Blob([data], {type: 'text/csv'});
+    if(window.navigator.msSaveOrOpenBlob) {
+        window.navigator.msSaveBlob(blob, filename);
+    }
+    else{
+        var elem = window.document.createElement('a');
+        elem.href = window.URL.createObjectURL(blob);
+        elem.download = filename;
+        document.body.appendChild(elem);
+        elem.click();
+        document.body.removeChild(elem);
+    }
+}
+
+https://github.com/eligrey/FileSaver.js
+
+  function saveAs(){
+  	if (!focusDoc) return;
+	saveFileBrowser({
+		initialPath: focusDoc.fname,
+		saver: function(name) {
+			focusDoc.save(name);
+		}
+	});
+}
+
+
+/DR/xmlView/viewXML.htm
+
+fa2lfs
+
+/samples/resample/Meowy Cat.WAV
+samples/resample/Meowy Cat.WAV
+
+~/deluge/samples/resample/Meowy Cat.WAV
+
+lfs2fa
+
+
+$('#hiddenfileopener').on('change', openLocal);
+
+function openLocal(evt)
+{
+	var files = evt.target.files;
+	var f = files[0];
+	if (f === undefined) return;
+	var reader = new FileReader();
+// Closure to capture the file information.
+	reader.onload = (function(theFile) {
+		return function(e) {
+			// Display contents of file
+				let t = e.target.result;
+				setEditText(theFile, t);
+			};
+		})(f);
+
+	// Read in the image file as a data URL.
+	reader.readAsText(f);
+}
+
+	let cbf = this.params.opener;
+	if (cbf) {
+		cbf(this.selectedFileNames);
+	}
+
+<div><input type="file" id="hiddenfileopener" name="files" accept=".wav,.WAV" title="Open File" multiple/></div>
+
+
+
+		<midiOutput>
+			<channel>0</channel>
+			<note>0</note>
+		</midiOutput>
+		<midiOutput>
+			<channel>0</channel>
+			<note>0</note>
+		</midiOutput>
+		<midiOutput>
+			<channel>0</channel>
+			<note>0</note>
+		</midiOutput>
+		<midiOutput>
+			<channel>0</channel>
+			<note>0</note>
+		</midiOutput>
+		<midiOutput>
+			<channel>0</channel>
+			<note>0</note>
+		</midiOutput>
+		<midiOutput>
+			<channel>0</channel>
+			<note>0</note>
+		</midiOutput>
+
+
+<audio controls preload='none'><source src='{{sample_path_prefix}}{{osc1.fileName}}' type='audio/wav'></audio>
+
+
+
+	<previewNumPads>144</previewNumPads>
+	<preview>000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000FF0000000000000000000000FF0000000000000000000000FF0000000000000000000000FF000000000000000000000000FF06005AA5</preview>
+	<xScroll>0</xScroll>
+	<xZoom>12</xZoom>
+	<yScrollSongView>-7</yScrollSongView>
+	<yScrollArrangementView>-7</yScrollArrangementView>
+	<xScrollArrangementView>0</xScrollArrangementView>
+	<xZoomArrangementView>96</xZoomArrangementView>
+	
+	
+	
+	</songParams>
+	<instruments>
+	
+	
+			//if(heteroArrays.has(kv)) {
+
+
+
+
+		if (isArrayLike(v)) {
+			if (heteroArrays.has(kv)) {
+			  for(let k = 0; k < v.length; ++k) {
+			  	let ao = v[k];
+			  	let thingType = ao.constructor.name;
+			  	let hkv = thingType.toLowerCase();
+				insides += jsonToXML(hkv, ao, d + 1);
+			  }	
+			} else 
+			  for(let m = 0; m < v.length; ++m) {
+				insides += jsonToXML(kv, v[m], d + 1);
+			}
+		} else if (v.constructor == Object) {
+			insides += jsonToXML(kv, v, d + 1);
+		} else {
+				// Simple k/v pair
+			if(typeof v === "string") v = v.trim();
+			insides += jsonToXML(kv, v, d);
+		}
+	}
+	let str = gentabs(d - 1) + "<" + kv + atStr;
+
+
+
+	for(let i = 0; i < keyOrder.length; ++i) {
+		let kv = keyOrder[i];
+		let v = j[kv];
+		if (v === undefined) {
+			continue;
+		}
+		if (kv === 'instruments') {
+			console.log('meow');
+		}
+
+		if (isArrayLike(v)) {
+			for(let k = 0; k < v.length; ++k) {
+				let useV = kv;
+				if (hetero) {
+					let ao = v[k];
+					let thingType = ao.constructor.name;
+					useV = thingType.toLowerCase();
+				}
+				insides += jsonToXML(useV, v[k], d + 1);
+			}
+		} else if (v.constructor == Object) {
+			insides += jsonToXML(kv, v, d + 1);
+		} else {
+				// Simple k/v pair
+			if(typeof v === "string") v = v.trim();
+			insides += jsonToXML(kv, v, d);
+		}
+	}
+	let str = gentabs(d - 1) + "<" + kv + atStr;
+	
+	if (insides.length > 0) {
+		str += '>\n' + insides + gentabs(d - 1) + '</' + kv + '>\n';
+	} else {
+		str += "/>";
+	}
+	return str;
+}
+
+https://medium.mybridge.co/javascript-top-10-open-source-projects-v-feb-2018-b0229cfe6e46
+https://github.com/developit/workerize?utm_source=mybridge&utm_medium=blog&utm_campaign=read_more
+https://github.com/zouhir/jarvis?utm_source=mybridge&utm_medium=blog&utm_campaign=read_more
+
+Thingees to fix:
+Make sure polling thread reawakens after upload.
+Make sure the earliest version element is handled correctly.
+MIDI elements in kits.
+
+
+Refresh prob could be "Any change since T=x"?
+Refreshs do not catch saves via any of the editors (I can find so far). Why?
+
+
+op=121 returns time of last write event.
+Get update status (op=102) does react correctly. op=121 only notices changes caused by the deluge.
+
+Old way of polling for dir changes:
+
+//Callback Function for Polling
+
+// During long uploads, polling requests were stacking up behind the upload
+// We add an active flag. The flag prevents new requests from going
+// out while one is active.
+  polling() {
+	if(this.polling_active) {
+		return;
+	}
+	this.polling_active = true;
+	let that = this;
+	var url="/command.cgi?op=121&TIME="+(Date.now());
+
+	$.get(url).done(function(data, textStatus, jqXHR){
+		that.polling_active = false;
+		if(this.last_update_time < Number(data)) {
+			that.last_update_time = Number(data);
+			that.getFileList(that.last_dirpath);
+			$("#reloadtime").html("<font color=red>"+(new Date()).toLocaleString())+"</font>";
+		}else{
+			$("#reloadtime").html((new Date()).toLocaleString());
+		}
+	}).fail(function(jqXHR, textStatus, errorThrown){
+		that.polling_active = false;
+		$("#reloadtime").html("<font color=red>Error:"+textStatus+"</font>");
+	});
+}
+
+  reload_list()
+{
+	this.getFileList(this.last_dirpath);
+	$("#reloadtime").html("<font color=blue>"+(new Date()).toLocaleString())+"</font>";
+}
+
+midiOutput
+
+				<midiOutput>
+					<channel>10</channel>
+					<note>36</note>
+				</midiOutput>
+
+
+<soundSources>
+	<sound>
+	...
+
+
+kit
+
+				<gateOutput>
+					<channel>0</channel>
+				</gateOutput>
+
+trackHeader
+
+
+function trackHeader(track, kind, inx, repeatTab, obj) {
+//	let section = Number(track.section);
+	let patchStr = "";
+
+	let patch = Number(track.instrumentPresetSlot);
+
+	if (kind === 'kit' || kind === 'sound') {
+		patchStr = patch;
+		let subpatch = Number(track.instrumentPresetSubSlot);
+		if (subpatch >= 0) {
+			patchStr += ' ';
+			patchStr += String.fromCharCode(subpatch + 65); // 0 = a, 1 = b, …
+		}
+	}
+	let info = "";
+	if (track.soundMidiCommand) {
+		info += "Midi in: " + (Number(track.soundMidiCommand.channel) + 1);
+	}
+	if (track.midiPGM) {
+		if(info) info += ', ';
+		info += "Midi program: " + (Number(track.midiPGM) + 1);
+	}
+	var patchName;
+	if (kind === 'kit') {
+		patchName = kitNames[patch];
+	} else if (kind === 'midi') {
+		patchStr = Number(track.midiChannel) + 1;
+		patchName = '';
+	} else if (kind === 'sound') {
+		patchName = patchNames[patch];
+	} else if (kind === 'cv') {
+		patchStr = Number(track.cvChannel) + 1;
+		patchName = '';
+	}
+
+function patchLabel(track) {
+	let kind = trackKind(track);
+	let patchStr = "";
+	let patch = Number(track.instrumentPresetSlot);
+
+	if (kind === 'kit' || kind === 'sound') {
+		patchStr = patch;
+		let subpatch = Number(track.instrumentPresetSubSlot);
+		if (subpatch >= 0) {
+			patchStr += ' ';
+			patchStr += String.fromCharCode(subpatch + 65); // 0 = a, 1 = b, …
+		}
+	}
+
+	var patchName;
+	if (kind === 'kit') {
+		patchName = kitNames[patch];
+	} else if (kind === 'midi') {
+		patchStr = Number(track.midiChannel) + 1;
+		patchName = '';
+	} else if (kind === 'sound') {
+		patchName = patchNames[patch];
+	} else if (kind === 'cv') {
+		patchStr = Number(track.cvChannel) + 1;
+		patchName = '';
+	}
+	if (patchName) patchName += ' ';
+		else patchName = '';
+	patchName += patchStr;
+	return patchName;
+}
+
+	return {
+		len:			track.trackLength,
+		patch: 			patchStr,
+		patchName:		patchName,
+		kindName: 		trackKindNames[kind],
+		info:			info,
+	};
+
+
+DON'T TRACK IN GIT:
+
+cd /Users/jamie/deluge/downrush
+rm DR/waverly/waverly.js
+rm DR/xmlView/viewXML.js
+
+1.0.0B14
+https://github.com/jamiefaye/downrush/releases/tag/1.0.0B14
+
+https://supportdetails.com/
+
+Hex dump of first 160 bytes of XML file might reveal if text encoding issues might interfere.
+
+
+
+
+		  {openEditing ? (<td style={{textAlign: 'left'}}>{this.props.osc.fileName}</td>)
+		  					  : (<td style={{textAlign: 'left'}}>{this.props.osc.fileName}</td>)}
+		  		
+		  		
+		  		
+<script type="text/javascript">
+ window.onerror = function(msg, url, line, col, error) {
+   var extra = !col ? '' : '\ncolumn: ' + col;
+   extra += !error ? '' : '\nerror: ' + error;
+   alert("Error: " + msg + "\nurl: " + url + "\nline: " + line + extra);
+   return true;
+};
+</script>
+
+npm install mobx --save
+
+npm uninstall --save mobx
+
+Find 'observable' in '/Users/jamie/deluge/downrush/xmlView/src/Classes.jsx':
+/Users/jamie/deluge/downrush/xmlView/src/Classes.jsx(2): import { observer, observable} from 'mobx';
+/Users/jamie/deluge/downrush/xmlView/src/Classes.jsx(15): 	@observable fileName;
+/Users/jamie/deluge/downrush/xmlView/src/Classes.jsx(16): 	@observable zone;
+/Users/jamie/deluge/downrush/xmlView/src/Classes.jsx(17): 	@observable loopMode;
+/Users/jamie/deluge/downrush/xmlView/src/Classes.jsx(22): 	@observable name;
+/Users/jamie/deluge/downrush/xmlView/src/Classes.jsx(26): 	@observable soundSources;
+
+
+Plan:
+
+If the replacer key is in the list of heteroArrays, then return a value that consists of
+an object with a _class annotation.
+
+function reviveClassOld(k, v) {
+	if (doNotSerialize.has(k)) return undefined;
+	let classToMake = nameToClassTab[k];
+	if (classToMake) {
+		if (isArrayLike(v)) {
+			for(var i = 0; i < v.length; ++i) {
+				v[i] = new classToMake(v[i]);
+			}
+			return v;
+		} else {
+			let nv = new classToMake(v);
+			return nv;
+		}
+	}
+	return v;
+}
+
+First context-sensitive tag usage in Deluge:
+
+		<cvChannel>
+			<channel>1</channel>
+		</cvChannel>
+		<midiChannel>
+			<channel>0</channel>
+			<suffix>-1</suffix>
+		</midiChannel>
+
+in tracks we see:
+
+<cvChannel>1</cvChannel>
+
+<midiChannel>0</midiChannel>
+
+instanceof DRObject
+
+https://www.admfactory.com/how-to-format-usb-flash-drive-to-fat32-in-mac-os/
+
+
+Handlebars templates:
+
+local_exec_head,
+local_exec_info,
+note_tip_template,
+song_template,
+track_head_template,
+sample_list_template,
+param_plot_template,
+paster_template,
+midiKnobTemplate,
+modKnobTemplate,
+midiModKnobTemplate,
+sample_list_header,
+sample_name_prefix,
+sound_template,
+wavegroup_template,
+empty_kit_template,
+empty_sound_template
+
+open_frame
+save_frame
+dir_template
+
+filegroup_template, 
+sfx_dropdn_template, 
+local_exec_head
+ local_exec_info
+filter_frame_template
+quadfilter_template
+quad_dropdn_template
+reverb_template
+delay_template
+osc_template
+
+Helpers:
+
+convertHexTo50
+fixhex
+fixpos50
+fmtMidiCC
+fixpan
+fixm50to50
+fixrev
+fixphase
+fmtmoddest
+fmttime
+fmtonoff
+fmttransp
+fmtprior
+fmtsync
+shrinkifneeded
+fmtscrelease
+fmtscattack
+Handlebars.registerHelper('formatDT', makeDateTime);
+export {convertHexTo50, fixm50to50, syncLevelTab};
+
+
+https://www.npmjs.com/package/webpack-handlebars-precompiler
+
+…
+rules: [
+    {/* babel loader config… */},
+    { test: /\.hbs$/, loader: 'handlebars-loader' }
+]
+…
+
+https://github.com/pcardune/handlebars-loader/blob/master/README.md
+
+
+handlebars path/to/template/folder -f path/to/compiled/folder/all-templates-compiled.tpl.js
+
+Using the pcardune loader:
+
+Add test: to rules (as shown above).
+
+Create a template directory
+
+  put all the templates into tempname.handlebars files.
+  put partials into partialname.handlebars files.
+  put helpers into helpername.js files.
+
+import templatename from "./templates/templatename.handlebars";
+
+import helpers used outside of handlebars with:
+   import convertHexTo50 from "./templates/convertHexTo50.js";
+
+module.exports = function
+
+
+src="SAMPLES/Mars/Acid From Mars/Res Multi/Res Multi Acid C0 01.wav"
+
+Now displays info about multi-sampled sounds.
+
+https://github.com/jamiefaye/downrush/releases/tag/1.0.2b9
+
+Download the .zip file and unpack it. You will see a directory named "distribution".
+
+Copy the DR directory from the distribution directory over onto the FlashAir card replacing any existing DR directory.
+
+If this is the first time, also copy over the SD_WLAN directory to the root level of the FlashAir card.
+
+If you have issues, please email jamie@fentonia.com and include a copy of the SONG, KIT, or SYNTH file that was causing troubles. Also please describe the computer and browser program involved. 
+
+	<inArrangementView>1</inArrangementView>
+	<xScrollSongView>0</xScrollSongView>
+	<xZoomSongView>12</xZoomSongView>
+	
+	<preview>
+	<inArrangementView>1</inArrangementView>
+	<xScrollSongView>0</xScrollSongView>
+	<xZoomSongView>12</xZoomSongView>
+	<arrangementAutoScrollOn>0</arrangementAutoScrollOn>
+	
+	"inArrangementView",
+	"xScrollSongView",
+	"xZoomSongView",
+
+
+Missing: sampleRanges in: osc1
+JsonXMLUtils.js:183 Missing: startSamplePos in: zone
+JsonXMLUtils.js:183 Missing: endSamplePos in: zone
+JsonXMLUtils.js:183 Missing: startSamplePos in: zone
+JsonXMLUtils.js:183 Missing: endSamplePos in: zone
+JsonXMLUtils.js:183 Missing: startSamplePos in: zone
+JsonXMLUtils.js:183 Missing: endSamplePos in: zone
+JsonXMLUtils.js:183 Missing: startSamplePos in: zone
+JsonXMLUtils.js:183 Missing: endSamplePos in: zone
+
+
+
+<instrumentPresetSubSlot>15</instrumentPresetSubSlot>
+			<arpeggiator>
+				<mode>up</mode>
+				<numOctaves>2</numOctaves>
+				<syncLevel>7</syncLevel>
+			</arpeggiator>
+			
+			<osc2>
+				<type>saw</type>
+				<transpose>9</transpose>
+				<cents>0</cents>
+				<oscillatorSync>1</oscillatorSync>
+				<retrigPhase>0</retrigPhase>
+			</osc2>
+
+						<carrier1Feedback>0x80000000</carrier1Feedback>
+						<carrier2Feedback>0x80000000</carrier2Feedback>
+						<pitchAdjust>0xF8000000</pitchAdjust>
+						
+			<colourOffset>-85</colourOffset>
+			<crossScreenEditLevel>96</crossScreenEditLevel>
+			<affectEntire>0</affectEntire>
+			<activeModFunction>1</activeModFunction>
+
+
+if(e.drumIndex){let n=d[e.drumIndex];if(t=n.na
+
+
+
+_class
+
+
+https://github.com/jamiefaye/downrush/releases/tag/1.0.2b9
+
+
+Download the .zip file and unpack it. You will see a directory named "distribution".
+
+Copy the DR directory from the distribution directory over onto the FlashAir card replacing any existing DR directory.
+
+If this is the first time, also copy over the SD_WLAN directory to the root level of the FlashAir card.
+
+If you have issues, please email jamie@fentonia.com and include a copy of the SONG, KIT, or SYNTH file that was causing troubles. Also please describe the computer and browser program involved.
+
+
+// turn Wireless LAN off.
+
+result = fa.control("fioset", 0)
+
+https://stackoverflow.com/questions/2878983/capture-key-press-without-placing-an-input-element-on-the-page
+// jQuery:
+$(document).keypress(function(e){
+    var checkWebkitandIE=(e.which==26 ? 1 : 0);
+    var checkMoz=(e.which==122 && e.ctrlKey ? 1 : 0);
+
+    if (checkWebkitandIE || checkMoz) $("body").append("<p>ctrl+z detected!</p>");
+});
+
+// classic:
+document.onkeydown = function(evt) {
+    evt = evt || window.event;
+    if (evt.ctrlKey && evt.keyCode == 90) {
+        alert("Ctrl-Z");
+    }
+};
+
+
+// Benefit here is that you are not overwriting any global properties, but instead merely introducing a side effect.
+
+window.addEventListener('keydown', function (e) {
+  if (e.ctrlKey && e.keyCode == 90) {
+    // Ctrl + z pressed
+  }
+});
+
+
+Waverly shortcuts.
+
++ Zoom In (Shift to zoom to sel) i I
+- Zoom Out (Shift to zoom to full) o O
+x cut
+c copy
+v paste
+b clear
+
+z undo
+Z redo
+
+p play
+p play sel
+
+
+		maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+
+i in
+o out
+r rev
+n norm
+t trim
+T crop
+
+a = select all
+A = reset zoom
+
+q quad
+s simple
+d delay
+t tone
+
+space = repeat last command.
+
+
+I added a 'zoom to selection' button to Waverly, along with some keyboard shortcuts.
+
+z       Undo
+Z       Redo
+x,X     Cut
+c,C     Copy
+v,V     Paste
+b,B     Delete
+a,A     Select All
+p       Play/Pause
+P       Play Selected
+i,I     Zoom to Selection
+-, _    Zoom Out 1/2X
+=, +    Zoom In 2X
+t,T     Trim sample to zero crossings
+r,R     Rewind
+k,K     Crop to selection.
+o,O     Open wave file.
+s       Save as wave file.
+S       Save-over wave file without prompting.
+u,U     Open earlier file in list.
+d,D     Open later file in list.
+
+Note that command-copy and command-paste use the browser's clipboard feature
+rather than the internal copy/paste functionality. Command copy and paste work well
+for copying from one window to another.
+
+https://github.com/jamiefaye/downrush/releases/tag/1.0.2b16
+
+Fixes an issue with the code that detects which version of a SONG file is being edited which caused an error alert.
+
+Download the .zip file and unpack it. You will see a directory named "distribution".
+
+Copy the DR directory from the distribution directory over onto the FlashAir card replacing any existing DR directory.
+
+If this is the first time, also copy over the SD_WLAN directory to the root level of the FlashAir card.
+
+If you have issues, please email jamie@fentonia.com and include a copy of the SONG, KIT, or SYNTH file that was causing troubles. Also please describe the computer and browser program involved.
+
+
+Liquid Notes (composition program).
+
+Tracks and Channels in Midi
+
+SMF0
+All MIDI data is stored in one track only, separated exclusively by the MIDI channel.
+If such a file is imported into Live, all MIDI data will appear in one track.
+
+SMF1
+The MIDI data is stored in separate tracks/channels.
+If such a file is imported into Live, the MIDI data will appear in different tracks.
+Up until Live 9, SMF1 formatted files appear as a folder in Live's browser, which can be opened to import only some of its tracks if necessary.
+
+Live exports MIDI files with a resolution of 96 ppq, which means a 16th note can be divided into 24 steps
+
+SMF2 (hardly used at all)
+The MIDI data is stored in separate tracks, which are additionally wrapped in containers, so it's possible to have e.g. several tracks using the same MIDI channels.
+
+
+https://www.npmjs.com/package/midi-parser-js
+
+https://github.com/Tonejs/MidiConvert
+
+
+file:///Users/jamie/deluge/projects/MidiConvert/index.html
+
+// Has some unusual entries:
+/Users/jamie/Documents/MPC/MatGirl/Track 06.mpcpattern
+
+
+
+npm install @tonejs/midi
+
+
+
+
+
+  "header": {
+    "name": "",
+    "ppq": 120,
+    "meta": [
+      {
+        "type": "keySignature",
+        "ticks": 0
+      },
+      {
+        "type": "marker",
+        "text": "sequenced by: Don Carroll   donniec@ix.netcom.com",
+        "ticks": 0
+      }
+    ],
+    "tempos": [
+      {
+        "ticks": 0,
+        "bpm": 100
+      }
+    ],
+    "timeSignatures": [
+      {
+        "ticks": 0,
+        "timeSignature": [
+          4,
+          4
+        ],
+        "measures": 0
+      }
+    ]
+  },
+  
+  "tracks": [
+    {
+      "name": "FLUTE",
+      "channel": 0,
+      "instrument": {
+        "number": 73,
+        "name": "flute",
+        "family": "pipe"
+      },
+      "notes": [
+        {
+          "time": 7.199999999999999,
+          "midi": 77,
+          "name": "F5",
+          "velocity": 1,
+          "duration": 1.7850000000000001,
+          "ticks": 1440,
+          "durationTicks": 357
+        },
+
+
+
+import React from 'react';
+import ReactDOM from "react-dom";
+
+
+    "prop-types": "^15.6.1",
+    "react": "^16.3.1",
+    "react-autocomplete-input": "^1.0.8",
+    "react-dom": "^16.3.1",
+
+
+
+https://stackoverflow.com/questions/33460420/babel-loader-jsx-syntaxerror-unexpected-token
+
+obj.append($("<p class='tinygap'>"));
+
+class MidiTrack extends React.Component {
+
+	render() {
+	    let track = this.props.track;
+	    let trackNum = this.props.trackNum;
+	    let inst = track.instrument;
+		return (<React.Fragment><table className='midihead'><tbody>
+		<tr>
+		<td className='midichan'><b>{trackNum}</b>:{track.channel}</td>
+		<td className='midiinst'>{inst ? inst.name : null}</td>
+		</tr>
+		</tbody></table>
+		<p className='tinygap'></p>
+		<MidiGrid track={track} />
+		</React.Fragment>);
+	}
+};
+
+<WedgeIndicator opened={this.state.opened} toggler={e=>{this.setState((prevState, props) =>{
+		  	return  {opened: !prevState.opened}})}}/>
+
+
+{
+ "track": {
+  "inKeyMode": "1",
+  "yScroll": "35",
+  "yScrollKeyboard": "50",
+  "isPlaying": "0",
+  "isSoloing": "0",
+  "playEnabledAtStart": "1",
+  "trackLength": "192",
+  "colourOffset": "-60",
+  "activeModFunction": "0",
+  "midiChannel": "0",
+  "section": "0",
+  "noteRows": "\n\t\t\t"
+ }
+}
+
+
+{
+ "track": {
+  "inKeyMode": "1",
+  "yScroll": "35",
+  "yScrollKeyboard": "50",
+  "isPlaying": "0",
+  "isSoloing": "0",
+  "playEnabledAtStart": "1",
+  "trackLength": "192",
+  "colourOffset": "-60",
+  "beingEdited": "1",
+  "activeModFunction": "0",
+  "midiChannel": "0",
+  "section": "0",
+  "noteRows": {
+   "noteRow": [
+    {
+     "y": "60",
+     "noteData": "0x00000000000000604014"
+    },
+    {
+     "y": "64",
+     "noteData": "0x00000060000000604014"
+    }
+   ]
+  }
+ }
+}
+
+
+	$('.opensongbutn').click(e=>{
+		let initial; // fname
+		if (!initial) initial = '/';
+		openFileBrowser({
+			initialPath:  initial,
+			opener: function(nameList) {
+				let name = nameList[0];
+				loadSongFile(name);
+//				fname = name;
+			}
+		});
+	});
+
+//editor
+function setSongText(fname, text)
+{
+	focusDoc = new DelugeDoc(fname, text);
+	setFocusDoc(focusDoc);
+}
+
+
+let xplotOffset = simple ? xSimpleOff : xPlotOff;
+
+
+td.simplechan {
+	width: 28px;
+	font-size: 14px;
+	border: none;
+	padding: none;
+}
+
+td.simpleinst {
+	font-size: 14px;
+	border: none;
+	padding: none;
+}
+
+table.simplehead {
+  text-align: left;
+  table-layout: fixed;
+  width: 140px;
+  border: none;
+}
+
+td.simpleheadr {
+	vertical-align: top;
+}
+
+table.simpletrack {
+	vertical-align: top;
+}
+
+div.simplelab {
+	position: absolute;
+	font-size: 7pt;
+}
+
+
+https://www.soundonsound.com/techniques/transferring-projects-between-different-daws
+
+Another audio‑only option is to export time‑stamped broadcast wave files (BWAV or BWF), 
+
+
+smaller scale when simple.
+
+show midi note # in NoteTips when rolling over kit symbols.
+
+
+
+
+
+function colorForGroup(sect) {
+	let trkColor = groupColorTab[sect % groupColorTab.length];
+	return '#' + gamma_correct(trkColor.toString(16));
+}
+
+		let colorString = '#' + gamma_correct(trkColor.toString(16));
+		
+		
+		export {showArranger, colorForGroup, bumpTracks};
+		
+		
+<button data-tippy="I will be created automatically">Text</button>
+
+
+https://stackoverflow.com/questions/30116430/reactjs-giving-error-uncaught-typeerror-super-expression-must-either-be-null-or
+https://foundation.zurb.com/forum/posts/53700-super-expression-must-either-be-null-or-a-function-not-undefined
+
+
+    "webpack": "^4.10.2"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.4",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "file-loader": "^1.1.11",
+    "uglifyjs-webpack-plugin": "^1.2.4",
+    "webpack-cli": "^2.0.9"
+
+
+
+    TypeError: Cannot read property 'properties' of undefined
+    
+    
+super expression must either be null or a function
+
+https://stackoverflow.com/questions/35777991/typeerror-super-expression-must-be-null-or-a-function-not-undefined-with-babel/35778089
+
+for me it occurred because of circular dependencies on static member (typescript). for example
+
+
+Avoiding doing a new DelugeDoc() across package lines seemed to cure this issue.
+
+Midi grid: background-color:#E8E8E0;
+
+
+https://webpack.js.org/guides/author-libraries/
+
+
++   externals: {
++     lodash: {
++       commonjs: 'lodash',
++       commonjs2: 'lodash',
++       amd: 'lodash',
++       root: '_'
++     }
++   }
+
+
+
+// initializing npm 
+
+npm init -y
+
+
+Using babel?
+
+            {
+                test: /\.jsx$/,
+                loader: 'jsx-loader?insertPragma=React.DOM&harmony'
+            }
+
+
+  presets: ['react', 'env']
+
+
+  use: {
+    loader: 'babel-loader',
+    options: {
+      presets: ['react', 'env']
+    }
+  }
+  
+  upgrading from `"webpack-cli": "^2.1.4"` to `"webpack-cli": "3.1.1"` fixed the problem.... Not sure if this is the correct/compatible version that we are supposed to use....
+  
+  
+I found this post 29 of StackOverflow that seemed indicative, and so I updated webpack and webpack-cli to their newest versions ("^4.27.0" and "^3.1.2", respectively) in package.json on a remix of your project and it seemed to resolve this particular error.
+
+
+  	let r = e.target.getBoundingClientRect();
+	let xr = e.clientX - r.left;
+	
+	
+	
+	https://github.com/tombigel/detect-zoom
+
+https://stackoverflow.com/questions/1713771/how-to-detect-page-zoom-level-in-all-modern-browsers
+
+var browserZoomLevel = Math.round(window.devicePixelRatio * 100);
+
+// Drum maps:
+
+https://ask.audio/articles/everything-producers-need-to-know-about-drum-maps
+
+// Playground hacks:
+https://www.swiftbysundell.com/posts/swift-playgrounds-tips-tricks
+
+https://www.swiftbysundell.com/
+
+
+Midi to csv utility:
+
+/Users/jamie/force/midicsv-1.1
+
+
+6, 0, Start_track
+6, 0, MIDI_port, 0
+6, 0, Control_c, 4, 0, 0
+6, 0, Control_c, 4, 32, 0
+6, 0, Program_c, 4, 2
+6, 0, Control_c, 4, 10, 105
+6, 1920, Note_on_c, 4, 52, 100
+
+{
+    "pattern": {
+        "length": 9223372036854775807,
+        "events": [
+            {
+                "type": 2,
+                "time": 242880,
+                "len": 952,
+                "1": 67,
+                "2": 1.0,
+                "3": 0,
+                "mod": 0,
+                "modVal": 0.5
+            },
+
+        ]
+    }
+}
+
+           {
+                "type": 257,
+                "time": 0,
+                "len": 0,
+                "1": 123,
+                "2": 0.0,
+                "3": 0,
+                "mod": 0,
+                "modVal": 0.0
+            },
+            {
+                "type": 1,
+                "time": 1120,
+                "len": 0,
+                "1": 121,
+                "2": 0.0,
+                "3": 0,
+                "mod": 0,
+                "modVal": 0.0
+            },
+
+            {
+                "type": 2,
+                "time": 119380,
+                "len": 1,
+                "1": 64,
+                "2": 0.5433070659637451,
+                "3": 0,
+                "mod": 0,
+                "modVal": 0.5
+            },
+            
+
+https://www.midi.org/specifications/category/reference-tables
+
+
+0.7874015748031497
+0.7874015748031497
+0.787401556968689
+12345678901234567
+
+
+BAD                  "2": 0.78740157480314,
+GOOD                 "2": 0.787401556968689, 
+
+trailing comma after last event did us in.
+
+http://www.fentonia.com/catnip/midianmpc/
+
+
+Encide an arranged instrument as Midi track:
+
+ encodeInstrumentAsMidiTrack(inst, chan)
+ {
+	let instString = inst.trackInstances;
+	if (!instString) return;
+	let maxTrack = trackTab.length;
+
+	let highTime =  0;
+	let song = this.props.song;
+	let trackTab = forceArray(song.tracks.track);
+	let arrangeOnlyTab = [];
+	if (song.arrangementOnlyTracks) {
+		arrangeOnlyTab = forceArray(song.arrangementOnlyTracks.track);
+	}
+
+	let maxTrack = trackTab.length;
+	for (var nx = 2; nx < instString.length; nx += 24) {
+		let start = parseInt(instString.substring(nx, nx + 8), 16);
+		let len = parseInt(instString.substring(nx + 8, nx + 16), 16);
+		let trk = parseInt(instString.substring(nx + 16, nx + 24), 16);
+		let endT = start + len;
+		if (endT > highTime) highTime = endT;
+		let track;
+		if (trk < maxTrack) {
+			track = trackTab[trk];
+		} else {
+			track = (arrangeOnlyTab.length - trk & 0x7FFFFFFF)
+		}
+		if (track) {
+			encodeAsMidi(track, start, len, chan);
+		}
+	}
+}
+
+// Encode a particular Deluge track as a Midi sequence
+encodeAsMidi(track, start, len, chan) {
+	
+
+
+}
+
+
+<td class='simplechan npop' style='background-color: {{sectionColor}}' data-text='{{kindName}} {{patch}} {{patchName}}{{#if info}}{{info}}{{/if}}'>
+{{trackNum}}&nbsp;<button class='tinybutn trackmenu'  title='Track Menu'><img src='img/menu-down.png'/></button>
+</td>
+
+
+<div class='soundviewbtn' trackno='{{trackIndex}}'>&#x25BA</div>
+
+
+https://www.jqueryscript.net/menu/Animated-Multi-level-jQuery-Dropdown-Plugin.html
+
+https://github.com/chriscather/Responsive-Toggle-Nav
+
+
+https://github.com/mwri/jquery.easymenu#readme
+
+
+function setTrackGUIregistrar(callback) {
+	trackGUIregistrar = callback;
+}
+
+export {formatSound, makeDelugeDoc, setFocusDoc, getFocusDoc, pasteTrackJson, setTrackGUIregistrar};
+
+let tDstart = Math.round(tMstart * delugePPQ / midiPPQ);
+let tDdur = Math.round(tMdur * delugePPQ / midiPPQ);
+
+let tDstart = Math.round(tMstart * midiPPQ / delugePPQ);
+let tDdur = Math.round(tMdur * midiPPQ / delugePPQ);
+
+
+
+"'Content-type': 'text/plain'"
+
+for the XML:
+"text/xml;charset=utf-8"
+
+
+constructor(fname, text, newKitFlag, simple) 
+
+
+function openSongLocal(evt)
+ {
+ 	let me = this;
+	var files = evt.target.files;
+	var f = files[0];
+	if (f === undefined) return;
+	var fname = f;
+	var reader = new FileReader();
+
+	reader.onloadend = (function(theFile) {
+		return function(e) {
+			// Display contents of file
+				let t = e.target.result;
+				setSongText(theFile, t);
+				$("#statind2").text(fname + " loaded.");
+
+			};
+	})(f);
+	
+	// Read in the image file as a data URL.
+	reader.readAsBinaryString(f);
+ }
+
+
+function setSongText(fname, text)
+{
+	let focusDoc = makeDelugeDoc(fname, text, false, true);
+	setFocusDoc(focusDoc);
+}
+
+	$('.opensongbutn').click(e=>{
+		let initial; // fname
+		if (!initial) initial = '/SONGS/';
+		openFileBrowser({
+			initialPath:  initial,
+			opener: function(name) {
+				loadSongFile(name);
+//				fname = name;
+			}
+		});
+		
+
+<midiChannel>10</midiChannel>
+<midiPGM>7</midiPGM>
+
+From SONG287.XML
+
+			<midiParams>
+				<param>
+					<cc>28</cc>
+					<value>0xC2000000</value>
+				</param>
+				<param>
+					<cc>bend</cc>
+					<value>0xFE2D268EFE1C0000800000BEC40C0000800000C280B00000800000CC80000000800000CD82900000800000D7B4680000800000DAB5FC0000800000DB00000000800000E1073C0000800000E37FFC0000800000ED7BE00000800000FC6B940000800000FE0CF8000080000103019800008000010500000000800001060000000080000156FAD800008000015EEF280000800001628000000080000172832800008000017DA000000080000180FC6C000080000186087000008000018963D800008000019765C0000080000198665C0000800001995FB80000800001A000300000800001A700CC0000800001A800CC00008000020CFB54000080000217D4B400008000021CD40000008000021DB564000080000223829000008000022881E0000080000229800000008000022E8A1800008000023CFC2000008000024104EC0000800002466CE40000800002517080000080000252711C00008000025368AC000080000257066C0000800002600250000080000261000000008000026200000000800002C6F1200000800002D1DF640000800002D680000000800002E184400000800002ED00000000800002F401340000800002F53F080000800002FD41C00000800002FE7D2C0000800003047FFC0000800003057E48000080000309082400008000031000000000800003110000000080000361FF00000080000373E344000080000377E114000080000378C2F800008000037C807C000080000381800000008000038284F4000080000391F9F400008000039751580000800003A37EE40000800003A67FFC0000800003A7790C0000800003AF07200000800003B500000000800003B6000000008000051EFE9A6D8080000532</value>
+				</param>
+			</midiParams>
+
+<param>
+<cc>43</cc>
+<value>0x20000000FA00000080000130FE0000008000013100000000800001320200000080000133060000008000013408000000800001350C000000800001360E0000008000013712000000800001381400000080000139180000008000013A1A0000008000013B1E0000008000013C220000008000013D240000008000013E2A0000008000013F2E00000080000140320000008000014136000000800001423A000000800001433C0000008000014442000000800001454400000080000146460000008000014748000000800001484C000000800001494E0000008000014A520000008000014B540000008000014C580000008000014D5C0000008000014E5E0000008000014F62000000800001506400000080000151660000008000015268000000800001546A000000800001556C000000800001586E00000080000159700000008000015A720000008000015B740000008000015C760000008000015D780000008000015F6C0000008000016F66000000800001705E000000800001715C00000080000172560000008000017350000000800001744E000000800001754A00000080000176460000008000017742000000800001793E0000008000017A3A0000008000017B380000008000017C340000008000017D300000008000017E2E0000008000017F2800000080000180240000008000018122000000800001821E000000800001831C000000800001841800000080000185160000008000018612000000800001870E000000800001890C0000008000018A0A0000008000018B060000008000018C040000008000018D020000008000018E000000008000018FFC00000080000190FA00000080000192FC00000080000197FE000000800001980000000080000199040000008000019A060000008000019C0A0000008000019D0E0000008000019F10000000800001A014000000800001A116000000800001A21A000000800001A31E000000800001A422000000800001A524000000800001A628000000800001A72C000000800001A82E000000800001AA30000000800001AB34000000800001AC36000000800001AD38000000800001AE3A000000800001AF3C000000800001B042000000800001B146000000800001B24A000000800001B34E000000800001B450000000800001B554000000800001B656000000800001B758000000800001B95A000000800001BB5C000000800001BC5E000000800001BD60000000800001BE62000000800001BF64000000800001C066000000800001C168000000800001C46A000000800001C66C000000800001C96E000000800001CB72000000800001CD74000000800001CE76000000800001CF78000000800001D07A000000800001D17C000000800001D578000000800001E676000000800001E778000000800001F276000000800001FA74000000800001FB72000000800001FC700000008000020D6E0000008000020E6C000000800002106A00000080000212680000008000021366000000800002156400000080000216620000008000021760000000800002185E000000800002195C0000008000021A5A0000008000021B580000008000021C540000008000021D520000008000021E4E0000008000021F4C000000800002204A0000008000022148000000800002224400000080000223420000008000022540000000800002263E000000800002273C000000800002283A00000080000229380000008000022A360000008000022B320000008000022C300000008000022D2C0000008000022E2A0000008000022F2800000080000230240000008000023122000000800002321E000000800002331C000000800002341A000000800002351800000080000236160000008000023714000000800002381200000080000239100000008000023B0E0000008000023C0C0000008000023D0A0000008000023E08000000800002400600000080000241040000008000024302000000800002460000000080000249FE0000008000024BFC0000008000024DFA0000008000024FF800000080000253F800000080000267FC0000008000027A040000008000027B060000008000027C080000008000027D0A0000008000027E0E0000008000027F1200000080000280140000008000028118000000800002821C000000800002832000000080000284240000008000028526000000800002862A000000800002872C000000800002882E00000080000289300000008000028B320000008000028D340000008000028E360000008000028F38000000800002903C000000800002913E000000800002924000000080000293420000008000029444000000800002954600000080000297480000008000029A4A0000008000029C4C0000008000029E4E000000800002A150000000800002A452000000800002A754000000800002AB56000000800002AD58000000800002AE5A000000800002AF5C000000800002B05E000000800002B160000000800002B262000000800002B466000000800002BE68000000800002BF6A000000800002C06C000000800002C16E000000800002C370000000800002C572000000800002C674000000800002C776000000800002C978000000800002CA7A000000800002CC7C000000800002CE7E000000800002D47E000000800002E87C000000800002F87A000000800002F976000000800002FB74000000800002FC70000000800002FD6E000000800002FE6A000000800002FF66000000800003006400000080000301620000008000030260000000800003035E000000800003045A00000080000305580000008000030656000000800003075400000080000308520000008000030B500000008000030D4E0000008000030F4C000000800003104A00000080000311460000008000031242000000800003133E000000800003143A00000080000315340000008000031630000000800003172E000000800003182C000000800003192A0000008000031A280000008000031B260000008000031F240000008000032222000000800003232000000080000325200000008000043DFCE8B2B480000451</value>
+</param>
+
+
+pitch bend is encoded like other parameters.
+
+
+https://www.youtube.com/watch?v=cXeghbzhKNE&feature=youtu.be&fbclid=IwAR0TUbEmNW4PnCFwVbyjKjnf51uYmdq1BseUanx6y8ZOqvbdm5RNngfr4vs
+
+
+
+
+
+
+FE2D268E
+FE1C0000 800000BE
+C40C0000 800000C2
+80B00000 800000CC
+80000000 800000CD
+82900000 800000D7
+B4680000 800000DA
+B5FC0000 800000DB
+00000000 800000E1
+073C0000 800000E3
+7FFC0000 800000ED
+7BE00000 800000FC
+6B940000 800000FE
+0CF80000 80000103
+01980000 80000105
+00000000 80000106
+00000000 80000156
+FAD80000 8000015E
+EF280000 80000162
+80000000 80000172
+83280000 8000017D
+A0000000 80000180
+FC6C0000 80000186
+08700000 80000189
+63D80000 80000197
+65C00000 80000198
+665C0000 80000199
+5FB80000 800001A0
+00300000 800001A7
+00CC0000 800001A8
+00CC0000 8000020C
+FB540000 80000217
+D4B40000 8000021C
+D4000000 8000021D
+B5640000 80000223
+82900000 80000228
+81E00000 80000229
+80000000 8000022E
+8A180000 8000023C
+FC200000 80000241
+04EC0000 80000246
+6CE40000 80000251
+70800000 80000252
+711C0000 80000253
+68AC0000 80000257
+066C0000 80000260
+02500000 80000261
+00000000 80000262
+00000000 800002C6
+F1200000 800002D1
+DF640000 800002D6
+80000000 800002E1
+84400000 800002ED
+00000000 800002F4
+01340000 800002F5
+3F080000 800002FD
+41C00000 800002FE
+7D2C0000 80000304
+7FFC0000 80000305
+7E480000 80000309
+08240000 80000310
+00000000 80000311
+00000000 80000361
+FF000000 80000373
+E3440000 80000377
+E1140000 80000378
+C2F80000 8000037C
+807C0000 80000381
+80000000 80000382
+84F40000 80000391
+F9F40000 80000397
+51580000 800003A3
+7EE40000 800003A6
+7FFC0000 800003A7
+790C0000 800003AF
+07200000 800003B5
+00000000 800003B6
+00000000 8000051E
+FE9A6D80 80000532
+         
+
+
+
+
+20000000
+FA00000080000130
+FE00000080000131
+0000000080000132
+0200000080000133
+0600000080000134
+0800000080000135
+0C00000080000136
+0E00000080000137
+1200000080000138
+1400000080000139
+180000008000013A
+1A0000008000013B
+1E0000008000013C
+220000008000013D
+240000008000013E
+2A0000008000013F
+2E00000080000140
+3200000080000141
+3600000080000142
+3A00000080000143
+3C00000080000144
+4200000080000145
+4400000080000146
+4600000080000147
+4800000080000148
+4C00000080000149
+4E0000008000014A
+520000008000014B
+540000008000014C
+580000008000014D
+5C0000008000014E
+5E0000008000014F
+6200000080000150
+6400000080000151
+6600000080000152
+6800000080000154
+6A00000080000155
+6C00000080000158
+6E00000080000159
+700000008000015A
+720000008000015B
+740000008000015C
+760000008000015D
+780000008000015F
+6C0000008000016F
+6600000080000170
+5E00000080000171
+5C00000080000172
+5600000080000173
+5000000080000174
+4E00000080000175
+4A00000080000176
+4600000080000177
+4200000080000179
+3E0000008000017A
+3A0000008000017B
+380000008000017C
+340000008000017D
+300000008000017E
+2E0000008000017F
+2800000080000180
+2400000080000181
+2200000080000182
+1E00000080000183
+1C00000080000184
+1800000080000185
+1600000080000186
+1200000080000187
+0E00000080000189
+0C0000008000018A
+0A0000008000018B
+060000008000018C
+040000008000018D
+020000008000018E
+000000008000018F
+FC00000080000190
+FA00000080000192
+FC00000080000197
+FE00000080000198
+0000000080000199
+040000008000019A
+060000008000019C
+0A0000008000019D
+0E0000008000019F
+10000000800001A0
+14000000800001A1
+16000000800001A2
+1A000000800001A3
+1E000000800001A4
+22000000800001A5
+24000000800001A6
+28000000800001A7
+2C000000800001A8
+2E000000800001AA
+30000000800001AB
+34000000800001AC
+36000000800001AD
+38000000800001AE
+3A000000800001AF
+3C000000800001B0
+42000000800001B1
+46000000800001B2
+4A000000800001B3
+4E000000800001B4
+50000000800001B5
+54000000800001B6
+56000000800001B7
+58000000800001B9
+5A000000800001BB
+5C000000800001BC
+5E000000800001BD
+60000000800001BE
+62000000800001BF
+64000000800001C0
+66000000800001C1
+68000000800001C4
+6A000000800001C6
+6C000000800001C9
+6E000000800001CB
+72000000800001CD
+74000000800001CE
+76000000800001CF
+78000000800001D0
+7A000000800001D1
+7C000000800001D5
+78000000800001E6
+76000000800001E7
+78000000800001F2
+76000000800001FA
+74000000800001FB
+72000000800001FC
+700000008000020D
+6E0000008000020E
+6C00000080000210
+6A00000080000212
+6800000080000213
+6600000080000215
+6400000080000216
+6200000080000217
+6000000080000218
+5E00000080000219
+5C0000008000021A
+5A0000008000021B
+580000008000021C
+540000008000021D
+520000008000021E
+4E0000008000021F
+4C00000080000220
+4A00000080000221
+4800000080000222
+4400000080000223
+4200000080000225
+4000000080000226
+3E00000080000227
+3C00000080000228
+3A00000080000229
+380000008000022A
+360000008000022B
+320000008000022C
+300000008000022D
+2C0000008000022E
+2A0000008000022F
+2800000080000230
+2400000080000231
+2200000080000232
+1E00000080000233
+1C00000080000234
+1A00000080000235
+1800000080000236
+1600000080000237
+1400000080000238
+1200000080000239
+100000008000023B
+0E0000008000023C
+0C0000008000023D
+0A0000008000023E
+0800000080000240
+0600000080000241
+0400000080000243
+0200000080000246
+0000000080000249
+FE0000008000024B
+FC0000008000024D
+FA0000008000024F
+F800000080000253
+F800000080000267
+FC0000008000027A
+040000008000027B
+060000008000027C
+080000008000027D
+0A0000008000027E
+0E0000008000027F
+1200000080000280
+1400000080000281
+1800000080000282
+1C00000080000283
+2000000080000284
+2400000080000285
+2600000080000286
+2A00000080000287
+2C00000080000288
+2E00000080000289
+300000008000028B
+320000008000028D
+340000008000028E
+360000008000028F
+3800000080000290
+3C00000080000291
+3E00000080000292
+4000000080000293
+4200000080000294
+4400000080000295
+4600000080000297
+480000008000029A
+4A0000008000029C
+4C0000008000029E
+4E000000800002A1
+50000000800002A4
+52000000800002A7
+54000000800002AB
+56000000800002AD
+58000000800002AE
+5A000000800002AF
+5C000000800002B0
+5E000000800002B1
+60000000800002B2
+62000000800002B4
+66000000800002BE
+68000000800002BF
+6A000000800002C0
+6C000000800002C1
+6E000000800002C3
+70000000800002C5
+72000000800002C6
+74000000800002C7
+76000000800002C9
+78000000800002CA
+7A000000800002CC
+7C000000800002CE
+7E000000800002D4
+7E000000800002E8
+7C000000800002F8
+7A000000800002F9
+76000000800002FB
+74000000800002FC
+70000000800002FD
+6E000000800002FE
+6A000000800002FF
+6600000080000300
+6400000080000301
+6200000080000302
+6000000080000303
+5E00000080000304
+5A00000080000305
+5800000080000306
+5600000080000307
+5400000080000308
+520000008000030B
+500000008000030D
+4E0000008000030F
+4C00000080000310
+4A00000080000311
+4600000080000312
+4200000080000313
+3E00000080000314
+3A00000080000315
+3400000080000316
+3000000080000317
+2E00000080000318
+2C00000080000319
+2A0000008000031A
+280000008000031B
+260000008000031F
+2400000080000322
+2200000080000323
+2000000080000325
+200000008000043D
+FCE8B2B480000451
+</value>
+7FFFFFFF
+80000000
+00000000
+7FFFFFFF
+00000060
+00000000
+000000C0
+
+7E000000
+80000000
+00000000
+7E000000
+00000060
+
+
+B4000000
+30000000
+00000000
+B4000000
+00000060
+
+
+7E000000
+4C000000
+00000000
+7E000000
+00000060
+
+
+Encoding:
+
+<LastValue>
+<FirstValue><When It Starts>
+<SecondValue><When It Starts>
+<LastValue><When It Starts>
+
+If it never changes:
+
+<OnlyValue>
+
+
+00000060
+00000060
+4014
+
+
+	// Special case where the parameter is a constant value.
+	if (ps.length <= 10) {
+		let asInt= parseInt(ps.substring(2, 10), 16);
+		let asCCV = convertToCCVal(asInt);
+		let ndiv = $("<div class='paramconst'>" + prefix + k + " = " + asCCV + "</div>");
+		elem.css({width: (tracklen + xPlotOffset) + 'px'});
+		elem.append(ndiv);
+		return;
+	}
+
+
+
+
+  OLDconvertTrackCCsToDeluge(track, midiTrack, startTime, endTime, tickOffset) {
+	let midi = this.midi;
+	let midiPPQ = midi.header.ppq;
+	let delugePPQ = 48;
+	let ccMap = midiTrack.controlChanges;
+	if (ccMap === undefined) return;
+	// ccMap ccNumber: Int : [ControlChangeEvent]
+
+/**
+ * @typedef ControlChangeEvent
+ * @property {number} controllerType
+ * @property {number=} value
+ * @property {number=} absoluteTime
+ */
+	for (let key in ccMap) {
+		let ccChan = Number(key);
+		let ccArray = ccMap[key];
+		if (ccArray.length === 0) continue;
+		let cchex = "0x";
+		let lastRunEnd = undefined;
+		let lastRunEndMidi = undefined;
+		let runsOut = 0;
+		let lastHex = undefined;
+		let pendingValue = undefined;
+		// Generate a complete set of runs for this track, clipping them to time window requested.
+		for (let nx = 0; nx < ccArray.length; ++nx) {
+			let n = ccArray[nx];
+
+			if (n.ticks < startTime) {
+				pendingValue = n.value;
+			} else if (n.ticks >= endTime) {
+				continue;
+			}
+			// If we have bleed-in from an earlier event,
+			// synthesize an imaginary event that begins at the startTime of the ROI
+			if (n.ticks > startTime && (pendingValue !== undefined && runsOut === 0) {
+				cchex += convertNormToHex(pendingValue);
+				lastRunEndMidi = startTime - tickOffset;
+				lastRunEnd =  Math.round(lastRunEndMidi * delugePPQ / midiPPQ);
+				pendingValue = undefined;
+			}
+			// encode the value
+			lastHex = convertNormToHex(n.value)
+			// console.log("orig: " + n.value + " hex: " + lastHex);
+			cchex += lastHex;
+
+
+			// if we have a previous value, store its "done time"
+			if (lastRunEnd !== undefined) {
+				cchex += hexLZ32(lastRunEnd);
+				runsOut++;
+			}
+			lastRunEndMidi = n.ticks - tickOffset;
+			lastRunEnd =  Math.round(lastRunEndMidi * delugePPQ / midiPPQ);
+		}
+		// If there was not an event in range, but an event started before the opening of our window,
+		// then the CC value persists across the entire window.
+		if (pendingValue != undefined && runsOut === 0) {
+			cchex += hexLZ32(pendingValue);	
+		} else if (runsOut > 0) { // If we have a run to complete.
+		//	cchex += lastHex
+			cchex += hexLZ32(lastRunEnd);
+		}
+		if (cchex.length <= 2) continue; // skip generating otherwise empty CC entries
+		if (!track.midiParams) {
+			track.midiParams = {};
+			track.midiParams.param = new Array();
+		}
+		track.midiParams.param.push({
+				cc: 	ccChan,
+				value:	cchex
+		});
+	}
+  }
+
+
+
+switch (eventType) {
+  case 0x08:
+    event.type = 'noteOff'
+    event.noteNumber = param1
+    event.velocity = p.readUInt8()
+    return event
+  case 0x09:
+    var velocity = p.readUInt8()
+    event.type = velocity === 0 ? 'noteOff' : 'noteOn'
+    event.noteNumber = param1
+    event.velocity = velocity
+    if (velocity === 0) event.byte9 = true
+    return event
+  case 0x0a:
+    event.type = 'noteAftertouch'
+    event.noteNumber = param1
+    event.amount = p.readUInt8()
+    return event
+  case 0x0b:
+    event.type = 'controller'
+    event.controllerType = param1
+    event.value = p.readUInt8()
+    return event
+  case 0x0c:
+    event.type = 'programChange'
+    event.programNumber = param1
+    return event
+  case 0x0d:
+    event.type = 'channelAftertouch'
+    event.amount = param1
+    return event
+  case 0x0e:
+    event.type = 'pitchBend'
+    event.value = (param1 + (p.readUInt8() << 7)) - 0x2000
+    return event
+
+	const controlChanges = trackData.filter(event => event.type === 'pitchBend')
+
+OldRange = (OldMax - OldMin)  
+NewRange = (NewMax - NewMin)  
+NewValue = (((OldValue - OldMin) * NewRange) / OldRange) + NewMin
+
+
+new_value = ( (old_value - old_min) / (old_max - old_min) ) * (new_max - new_min) + new_min
+
+#define RangeConv(X, x1, x2, y1, y2) (((float)((X - x1) * (y2 - y1)) / (x2 - x1)) + y1)
+
+
+def remap( x, oMin, oMax, nMin, nMax ):
+
+    #range check
+    if oMin == oMax:
+        print "Warning: Zero input range"
+        return None
+
+    if nMin == nMax:
+        print "Warning: Zero output range"
+        return None
+
+    #check reversed input range
+    reverseInput = False
+    oldMin = min( oMin, oMax )
+    oldMax = max( oMin, oMax )
+    if not oldMin == oMin:
+        reverseInput = True
+
+    #check reversed output range
+    reverseOutput = False   
+    newMin = min( nMin, nMax )
+    newMax = max( nMin, nMax )
+    if not newMin == nMin :
+        reverseOutput = True
+
+    portion = (x-oldMin)*(newMax-newMin)/(oldMax-oldMin)
+    if reverseInput:
+        portion = (oldMax-x)*(newMax-newMin)/(oldMax-oldMin)
+
+    result = portion + newMin
+    if reverseOutput:
+        result = newMax - portion
+
+    return result
+
+#test cases
+print remap( 25.0, 0.0, 100.0, 1.0, -1.0 ), "==", 0.5
+print remap( 25.0, 100.0, -100.0, -1.0, 1.0 ), "==", -0.25
+print remap( -125.0, -100.0, -200.0, 1.0, -1.0 ), "==", 0.5
+print remap( -125.0, -200.0, -100.0, -1.0, 1.0 ), "==", 0.5
+#even when value is out of bound
+print remap( -20.0, 0.0, 100.0, 0.0, 1.0 ), "==", -0.2
+
+/*
+https://stackoverflow.com/questions/929103/convert-a-number-range-to-another-range-maintaining-ratio
+https://stackoverflow.com/users/3821289/fonstok
+*/
+
+function remap( x, oMin, oMax, nMin, nMax ){
+//range check
+if (oMin == oMax){
+    console.log("Warning: Zero input range");
+    return None;
+};
+
+if (nMin == nMax){
+    console.log("Warning: Zero output range");
+    return None
+}
+
+//check reversed input range
+var reverseInput = false;
+oldMin = Math.min( oMin, oMax );
+oldMax = Math.max( oMin, oMax );
+if (oldMin != oMin){
+    reverseInput = true;
+}
+
+//check reversed output range
+var reverseOutput = false;  
+newMin = Math.min( nMin, nMax )
+newMax = Math.max( nMin, nMax )
+if (newMin != nMin){
+    reverseOutput = true;
+};
+
+var portion = (x-oldMin)*(newMax-newMin)/(oldMax-oldMin)
+if (reverseInput){
+    portion = (oldMax-x)*(newMax-newMin)/(oldMax-oldMin);
+};
+
+var result = portion + newMin
+if (reverseOutput){
+    result = newMax - portion;
+}
+
+return result;
+}
+
+// This function returns a function bound to the 
+// min/max source & target ranges given.
+// oMin, oMax = source
+// nMin, nMax = dest.
+function makeRangeMapper(oMin, oMax, nMin, nMax ){
+	//range check
+	if (oMin == oMax){
+		console.log("Warning: Zero input range");
+		return undefined;
+	};
+
+	if (nMin == nMax){
+		console.log("Warning: Zero output range");
+		return undefined
+	}
+
+	//check reversed input range
+	var reverseInput = false;
+	oldMin = Math.min( oMin, oMax );
+	oldMax = Math.max( oMin, oMax );
+	if (oldMin != oMin){
+	    reverseInput = true;
+	}
+
+	//check reversed output range
+	var reverseOutput = false;  
+	newMin = Math.min( nMin, nMax )
+	newMax = Math.max( nMin, nMax )
+	if (newMin != nMin){
+	    reverseOutput = true;
+	}
+
+	// Hot-rod the most common case.
+	if (!reverseInput && !reverseOutput) {
+		let dNew = newMax-newMin;
+		let dOld = oldMax-oldMin;
+ 		return (x)=>{
+			return ((x-oldMin)* dNew / dOld) + newMin;
+		}
+	}
+
+	return (x)=>{
+		let portion;
+		if (reverseInput){
+			portion = (oldMax-x)*(newMax-newMin)/(oldMax-oldMin);
+		} else {
+			portion = (x-oldMin)*(newMax-newMin)/(oldMax-oldMin)
+		}
+		let result;
+		if (reverseOutput){
+			result = newMax - portion;
+		} else {
+			result = portion + newMin;
+		}
+		
+		return result;
+	}	
+}
+
+I have several songs I made during the few hours after my Deluge arrived that sound better (musically) then anything I have made on the Force so far.
+
+I am keeping the Force, hoping Akai fixes some of the rough edges soon.
+
+For me, the biggest limitation of the Deluge is how hard it is to see how somebody else made a sound. You have to peek and poke at each parameter by menu diving or shortcut selection. I tried to fix some of this by displaying all the parameters at once using Downrush in the "Periodic Table" display, but that doesn't work that well for me.
+
+As Yamaha found out when it made the DX-7, most musicians stick with the sounds that come with the unit. While I have found more, you still hit a limit sooner or later.
+
+Akai has many more sound presets than the Deluge does, and an ecosystem for distributing more. Moreover, the sound parameters are shown in a sensible graphical format so it is easier to understand how they are put together.
+
+The Deluge has a great collection of "drone" sounds, and unlike Akai, the drum kits are relatively consistent. The Akai is so slanted towards EDM production that it hurts sometimes. All the drum kits have EDM names like "DeepHouse-Kit-Thatgirl".
+
+
+
+
+
+
+From https://github.com/Tonejs/Midi
+   f6fca1d..bf704e4  master     -> origin/master
+Updating f6fca1d..bf704e4
+Fast-forward
+ README.md                               |    2 +-
+ package.json                            |    2 +-
+ src/BinarySearch.js                     |    3 +
+ src/ControlChange.js                    |   11 +-
+ src/Midi.js                             |   12 +-
+ src/Track.js                            |    4 +
+ test/Track.js                           |   14 +
+ test/midi/joplin/TheEntertainer.mid     |  Bin 0 -> 16698 bytes
+ test/midi/joplin/TheEntertainer.mid.txt | 2618 +++++++++++++++++++++++++++++++
+ 9 files changed, 2657 insertions(+), 9 deletions(-)
+ create mode 100644 test/midi/joplin/TheEntertainer.mid
+ create mode 100644 test/midi/joplin/TheEntertainer.mid.txt
+Jamies-MacBook-Pro-2:Midi jamie$ 
+
+
+git pull --rebase
+
+
+
+ const channelChanges = trackData.filter(event => event.type === 'noteAftertouch' || event.type === 'programChange' || event.type === 'pitchBend' || event.type === 'channelAftertouch');
+
+Cortex-A12
+
+The ARM Cortex-A12 is a 32-bit processor core licensed by ARM Holdings implementing the ARMv7-A architecture. It provides up to 4 cache-coherent cores.
+The Cortex-A12 is a successor to the Cortex-A9.
+
+Cortex LE seems to work for Deluge.
+
+
+chrome://flags/#unsafely-treat-insecure-origin-as-secure
+
+https://support.google.com/chrome/answer/114662?co=GENIE.Platform%3DDesktop&hl=en
+
+https://support.google.com/chrome/answer/2693767
+
+
+Force note excerpt:
+                                            {
+                                                "time": 6240,
+                                                "type": 2,
+                                                "selected": true,
+                                                "muted": false,
+                                                "invented": false,
+                                                "note": {
+                                                    "note": 38,
+                                                    "velocity": 0.875,
+                                                    "modifierType": 0,
+                                                    "modifierValue": 0.5,
+                                                    "length": 239
+                                                }
+                                            },
+
+
+Schema Scanning
+
+https://www.jsonschema.net/
+
+
+We are not yet flattening channel messages.
+
+			<WedgeIndicator opened={this.props.showTab} toggler={e=>{this.props.command('toggletab', e)}} />
+
+
+
+<button class='clipbtn'trackno='{{trackIndex}}'><img src='img/copy-to-clipboard.png'/></button>
+
+{this.state.opened && (this.state.showTab || soundGridOnly)  ? (<tr><td colSpan={openEditing ? 9 : 7}><SoundTab sound={this.props.kito}/></td></tr>) : null}
+
+<SoundTab sound={this.props.kito}/>
+
+	} else {
+		let trackType = trackKind(trackD);
+		if (trackType === 'sound' || trackType === 'kit'|| trackType === 'midi') {
+			target.textContent = "▼";
+		} else {
+			return;
+		}
+		if (trackType === 'sound') {
+		let soundD = findSoundData(trackD, songJ);
+		formatSound(where, soundD, trackD.soundParams);
+	  } else if (trackType === 'kit') {
+			// We have a kit track,, 
+			let kitroot = trackD.kit;
+			if (trackD['soundSources']) {
+				kitroot = trackD.soundSources.sound;
+			} else {
+				kitroot = findKitList(trackD, songJ);
+			}
+
+			if(kitroot) {
+				formatKit(kitroot, trackD.kitParams, where[0]);
+			}
+		} else if(trackType === 'midi') {
+			formatMidi(where, trackD);
+		}
+	 }
+
+
+
+findSoundData is in TrackView
+
+formatSound means <SoundTab sound={this.props.kito}/>
+
+formatModKnobsMidi
+
+Paste track data in field below to add it to song.
+/Users/jamie/deluge/downrush/xmlView/src/templates/paster_template.handlebars
+
+
+
+var clipboard = new ClipboardJS('.btn');
+clipboard.destroy();
+
+
+https://github.com/sudodoki/copy-to-clipboard
+
+
+import copy from 'copy-to-clipboard';
+
+npm i --save copy-to-clipboard
+
+
+// Went with the below:
+npm install clipboard-copy
+
+const copy = require('clipboard-copy')
+copy('This is some cool text')
+
+
+Need to put the index image in simple song view.
+
+	let ctab = genColorTab(jsong.preview);
+	obj.append(ctab);
+
+
+Filter simple's appearance in Midian to not show some stuff.
+Remove old style track headers.
+Remove unusued templates.
+
+Remove old song display code (once we are fully-moved onto the Simple rendition).
+
+
+Combine "simple" and "transTrack" into a single config object that can also specify what score element to include (for Midian vs. viewXML).
+Config element could contain scale.
+
+
+How do we window-select a subset of the note data?
+
+Is there a common representation for event data we can use for everything?
+
+
+newKitFlag, simple, options)
+
+options = {
+newKit: false,
+simple: false,
+viewer: 'midian',
+transTrack: function()
+};
+
+50OFF
+
+	<rootNote>0</rootNote>
+	<modeNotes>
+		<modeNote>0</modeNote>
+		<modeNote>2</modeNote>
+		<modeNote>4</modeNote>
+		<modeNote>5</modeNote>
+		<modeNote>7</modeNote>
+		<modeNote>9</modeNote>
+		<modeNote>11</modeNote>
+	</modeNotes>
+
+			<inKeyMode>0</inKeyMode>
+60 - 72
+
+			<inKeyMode>1</inKeyMode>
+60 - 72 (with skips)
+
+
+A Major:
+
+	<rootNote>57</rootNote>
+57 - 69
+
+
+"Major",	[0, 2, 4, 5, 7, 9, 11],
+"Minor",	[0, 2, 3, 5, 7, 8, 10],
+"Dorian",	[0, 2, 3, 5, 7, 9, 10],
+"Phrygian", [0, 1, 3, 5, 7, 8, 10],
+"Lydian", 	[0, 2, 4, 6, 7, 9, 11],
+"Mixolydian", [0, 2, 4, 5, 7, 9, 10],
+"Locrian", 	[0, 1, 3, 5, 6, 8, 10] ];
+Major
+
+0	0
+1	0.5
+2	1
+3	1.5
+4	2
+5	3
+6	3.5
+7	4
+8	4.5
+9	5
+10	5.5
+11	6
+
+
+Delta-semitones:
+
+Major		2 2 1 2 2 2 1
+Minor		2 1 2 2 1 2 2
+		
+Dorian		2 1 2 2 2 1 2
+Phrygian	1 2 2 2 1 2 2
+Lydian		2 2 2 1 2 2 1
+Mixolydian	2 2 1 2 2 1 2
+Locrian		1 2 2 1 2 2 2
+
+
+
+Major		2 2 1 2 2 2 1
+Minor		2 1 2 2 1 2 2
+		
+Dorian		2 1 2 2 2 1 2
+Phrygian	1 2 2 2 1 2 2
+Lydian		2 2 2 1 2 2 1
+Mixolydian	2 2 1 2 2 1 2
+Locrian		1 2 2 1 2 2 2
+
+Rotating Left:
+
+Major		2 2 1 2 2 2 1
+Dorian		2 1 2 2 2 1 2
+Phrygian	1 2 2 2 1 2 2
+Lydian		2 2 2 1 2 2 1
+Mixolydian	2 2 1 2 2 1 2
+Minor		2 1 2 2 1 2 2
+Locrian		1 2 2 1 2 2 2
+
+Major		2 2 1 2 2 2 1
+
+// Convert a range 0 - 11 into a range 0 - 6 with fractional
+// steps corresponding to the "black keys" in the given scale.
+// For example, the major scale turns into:
+//	0	0
+//	1	0.5
+//	2	1
+//	3	1.5
+//	4	2
+//	5	3
+//	6	3.5
+//	7	4
+//	8	4.5
+//	9	5
+//	10	5.5
+//	11	6
+
+let mtx = 11;
+
+let mtx = 11;
+let mnL = 12;
+let scV = 6;
+let chromeToScaleTab = [];
+for (let i = 6; i >= 0; i--) {
+	let mn =  modeNotes[i];
+	let dMN = mnL - mn;
+	mnL = mn;
+	if (dMN === 2) chromeToScaleTab[mtx--] = scV + 0.5;
+	chromeToScaleTab[mtx--] = scV;
+	scV--;
+}
+
+let mnL = 12;
+
+let mtx = 11;
+let mnL = 12;
+let scV = 6;
+let chromeToScaleTab = [];
+for (let i = 6; i >= 0; i--) {
+	let mn =  modeNotes[i];
+	let dMN = mnL - mn;
+	mnL = mn;
+	if (dMN === 2) chromeToScaleTab[mtx--] = scV + 0.5;
+	chromeToScaleTab[mtx--] = scV;
+	scV--;
+}
+
+
+let ctx = 0;
+let scaleVal = 0;
+let chromeToScaleTab = [];
+let prevMNote = 0;
+for (let i = 0; i < 7; ++i) {
+	let nextModeNote;
+	if (i == 6) {nextModeNote = 12} else {nextModeNote = modeNotes[i + 1]};
+	let deltaModeNote = nextModeNote - prevMNote;
+	pmn = nmn;
+	chromeToScaleTab[ctx++] = scaleVal;
+	if (deltaModeNote === 2) chromeToScaleTab[ctx++] = scaleVal + 0.5;
+	scaleVal++;
+}
+
+// Version that generates a mapping table offset by scale
+let ctx = 0;
+let scaleVal = 0;
+let chromeToScaleTab = [];
+let prevMNote = modeNotes[0];
+for (let i = 0; i < 7; ++i) {
+	let nextModeNote;
+	if (i == 6) {nextModeNote = 12} else {nextModeNote = modeNotes[i + 1]};
+	let deltaModeNote = nextModeNote - prevMNote;
+	pmn = nmn;
+	chromeToScaleTab[ctx++] = scaleVal;
+	if (deltaModeNote === 2) chromeToScaleTab[ctx++] = scaleVal + 0.5;
+	scaleVal++;
+}
+
+let root = rootNote % 12;
+
+let oct = (chrome - root) / 12
+let noff = (chrome - root) % 12;
+let yoff = chromeToScaleTab[noff] + oct * 7
+
+
+// JSZIP to decompress zip files?
+https://stuk.github.io/jszip/documentation/examples.html
+https://stuk.github.io/jszip/documentation/howto/read_zip.html
+
+npm install jszip
+npm uninstall jszip
+
+var buildType='mpc';
+
+var buildType='xpj';
+
+
+
+	openOnBuffer(data) {
+		var xpjABuffer;
+		let me = this;
+		
+
+		
+		var fileReader = new FileReader();
+		fileReader.onload = function(event) {
+			xpjABuffer = event.target.result;
+			let newZip = new JSZip();
+			newZip.loadAsync(xpjABuffer).then(function (zip) {
+				me.xpj = new Xpj(xpjABuffer);
+				me.xpjText = JSON.stringify(me.xpj, undefined, 2);
+				me.context.xpjText = me.xpjText;
+				me.context.xpj = me.xpj;
+				me.context.fname = me.fname;
+				me.render();
+			});
+		}
+		fileReader.readAsArrayBuffer(data);
+	}
+
+
+
+	openOnBuffer(data) {
+	var xpjABuffer;
+	let me = this;
+	let newZip = new JSZip();
+	newZip.loadAsync(data).then(function (zip) {
+		zip.forEach(function (relPath, zipEntry) {
+			console.log(relPath); 
+	
+		});
+		me.xpj = new Xpj(xpjABuffer);
+		me.context.xpjText = "4";
+		me.context.fname = mefnme;
+		me.render();;
+		});
+	}
+
+
+
+	openOnBuffer(data) {
+		var xpjABuffer;
+		let me = this;
+		var fileReader = new FileReader();
+		fileReader.onload = function(event) {
+			xpjABuffer = event.target.result;
+			try {
+				var inflator = new pako.Inflate();
+				let asA = new Uint8Array(xpjABuffer)
+				inflator.push(asA, true);
+				if (inflator.err) {
+ 					console.log(inflator.msg);
+				}
+
+				var result = inflator.result;
+				me.xpj = new Xpj(result);
+				//me.xpjText = JSON.stringify(me.xpj, undefined, 2);
+				me.context.xpjText = result;
+				me.context.xpj = me.xpj;
+				me.context.fname = me.fname;
+				me.render();
+			} catch (err) {
+				console.log(err);
+			}
+		};
+		fileReader.readAsArrayBuffer(data);
+	}
+
+Header of xpj file:
+
+Block header starts with:
+1F 8B 08 00
+
+ACVS
+3.0.1.28
+SerialisableProjectData
+json
+Linux
+{
+    "data": {
+
+windowBits can also be greater than 15 for optional gzip decoding. Add 32 to windowBits to enable zlib and gzip decoding with automatic header detection, or add 16 to decode only the gzip format (the zlib format will return a Z_DATA_ERROR). If a gzip stream is being decoded, strm->adler is a CRC-32 instead of an Adler-32. Unlike the gunzip utility and gzread() (see below), inflate() will not automatically decode concatenated gzip streams. inflate() will return Z_STREAM_END at the end of the gzip stream. The state would need to be reset to continue decoding a subsequent gzip stream.
+
+
+header and adler32 
+
+
+avail_in
+
+
+use .subsrray(n); // where n = strm.total_in
+// subarray reframes rather than copies.
+
+
+var u8 = new Uint8Array([65, 66, 67, 68]);
+var decoder = new TextDecoder('utf8');
+var decStr = ecoder.decode(u8);
+var b64encoded = btoa(decoder.decode(u8));
+
+
+sequences
+
+9223372036854775807 = 0x7FFFFFFFFFFFFFFF
+
+9223372036854776000
+
+/Test/hack18.json
+
+
+http://jsonviewer.stack.hu/
+
+
+          "trackClipMaps": [
+
+
+          }
+
+
+tracks is an array showing tracks from L to R.
+
+trackClipMaps is a 0-based array, however the ULHC starts at index 1. (Index 0 is empty??).
+Each element contains an object mapping from track name (i.e. "Chicago Kit") to an entry for that pad.
+the "value": associated with that key has relative start & end times and an event list.
+
+// events on an audio clip track look like this:
+
+audio: {
+sample: {2 items},
+name: "Clip-ClassicHouse-Vocal-VocalLp 06",
+tempo: 120,
+volume: 0.5011872053146362,
+mute: false,
+reverse: false,
+fadeIn: 0,
+fadeOut: 0,
+repeats: 0,
+sliceStart: 0,
+sliceEnd: 352799,
+warpEnable: true,
+warpMarkers: [],
+coarseTune: 0,
+fineTune: 0
+}
+}
+
+note: {
+note: 43,
+velocity: 1,
+modifierType: 0,
+modifierValue: 0.5,
+length: 239
+}
+
+
+colour: 0,
+eventList: {
+length: 9223372036854776000,
+events: [
+{
+time: 0,
+type: 3,
+selected: true,
+muted: false,
+invented: false,
+audio: {
+sample: {
+name: "Audio 002_Rec31",
+path: "Audio 002_Rec31.WAV"
+},
+name: "Audio 002_Rec31",
+tempo: 128,
+volume: 0.5011872053146362,
+mute: false,
+reverse: false,
+fadeIn: 0,
+fadeOut: 0,
+repeats: 0,
+sliceStart: 384,
+sliceEnd: 331133,
+warpEnable: true,
+warpMarkers: [],
+coarseTune: 0,
+fineTune: 0
+}
+}
+]
+
+data.tracks[n].name...
+
+data.sequences[0].key
+data.sequences[0].value.name
+data.sequences[0].value.trackClipMaps[r][n].key 					// maps to data.tracks[n].name
+data.sequences[0].value.trackClipMaps[r][n].value.eventList.length
+data.sequences[0].value.trackClipMaps[r][n].value.eventList.events[n].time
+data.sequences[0].value.trackClipMaps[r][n].value.eventList.events[n].note.note
+data.sequences[0].value.trackClipMaps[r][n].value.eventList.events[n].note.velocity
+
+
+data.sequences[0].value.trackClipMaps[r][n].value.eventList.events[n].audio.sample.name
+data.sequences[0].value.trackClipMaps[r][n].value.eventList.events[n].audio.volume
+
+http://www.fentonia.com/catnip/midianmpc/xpj2json.html
+
+
+ASKMPC50 50% MPC2 software discount code.
+
+/ plugin
+track.program.plugin
+track.program.type = 3
+
+// audio clip
+track.program.audio
+track.program.type = 6
+
+// midi
+track.program
+track.program.type = 4
+
+// drum
+track.program.drum
+track.program.type = 0
+
+// cv
+track.program.cv
+track.program.type = 5
+
+
+// keygroup
+track.program.drum
+track.program.type = 1
+
+let pt_DRUM = 0;
+let pt_KEYGROUP = 1;
+let pt_PLUGIN = 3;
+let pt_MIDI = 4;
+let pt_CV = 5;
+let pt_AUDIO = 6;
+
+
+const Program_Type = Object.freeze({
+	DRUM = 0,
+	KEYGROUP = 1,
+	PLUGIN = 3,
+	MIDI = 4,
+	CV = 5,
+	AUDIO = 6
+});
+
+note values:
+C1 = 36
+D1 = 38
+
+TestDoc colors L to R:
+
+					0xRRGGBB
+
+65408				0x00FF80
+43775				0x00AAFF
+5374207				0x5200FF
+16711935			0xFF00FF
+16729088			0xFF4400
+15138560			0xE6FF00
+
+npm install --save react-canvas-wrapper
+https://github.com/ryanhefner/react-canvas-wrapper
+
+https://dzone.com/articles/techniques-for-animating-on-the-canvas-in-react
+
+
+
+
+class PureCanvas extends React.Component {
+  shouldComponentUpdate() {
+    return false;
+  }
+  render() {
+    return (
+      <canvas
+        width="300"
+        height="300"
+        ref={node =>
+          node ? this.props.contextRef(node.getContext('2d')) : null
+        }
+      />
+    );
+  }
+}
+
+class Canvas extends React.Component {
+  constructor(props) {
+    super(props);
+    this.saveContext = this.saveContext.bind(this);
+  }
+  saveContext(ctx) {
+    this.ctx = ctx;
+    this.width = this.ctx.canvas.width;
+    this.height = this.ctx.canvas.height;
+  }
+  componentDidUpdate() {
+    const { angle } = this.props;
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.clearRect(0, 0, this.width, this.height);
+    this.ctx.translate(this.width / 2, this.height / 2);
+    this.ctx.rotate((angle * Math.PI) / 180);
+    this.ctx.fillStyle = '#4397AC';
+    this.ctx.fillRect(
+      -this.width / 4,
+      -this.height / 4,
+      this.width / 2,
+      this.height / 2
+    );
+    this.ctx.restore();
+  }
+  render() {
+    return <PureCanvas contextRef={this.saveContext} />;
+  }
+}
+
+
+// Simpler:
+
+class Canvas extends React.Component {
+  constructor(props) {
+    super(props);
+    this.canvasRef = React.createRef();
+  }
+  componentDidUpdate() {
+    // Draws a square in the middle of the canvas rotated
+    // around the centre by this.props.angle
+    const { angle } = this.props;
+    const canvas = this.canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    ctx.save();
+    ctx.beginPath();
+    ctx.clearRect(0, 0, width, height);
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate((angle * Math.PI) / 180);
+    ctx.fillStyle = '#4397AC';
+    ctx.fillRect(-width / 4, -height / 4, width / 2, height / 2);
+    ctx.restore();
+  }
+  render() {
+    return <canvas width="300" height="300" ref={this.canvasRef} />;
+  }
+}
+		{clipMaps.map((row, rowx) =>{
+			return row.map((col, colx) => {
+				return <XplTrackCanvas clip={col} angle={0} />
+			})
+		})}
+		
+		
+		
+		
+		class XpjView extends React.Component {
+  render() {
+		if (!this.props.xpj) return null;
+  		let xpj = this.props.xpj;
+  		let tracks = xpj.tracks;
+  		let sequence = xpj.sequence;
+		let clipMaps = sequence.value.trackClipMaps;
+
+		return <div>
+
+		<XplTrackCanvas angle={33}/>
+		<JsonView label='xpj Json' json = {this.props.xpj} />
+		</div>
+  }
+}
+
+
+
+https://gist.github.com/JobLeonard/987731e86b473d42cd1885e70eed616a
+
+
+
+class Smurgle extends React.Component {
+  constructor(props) {
+    super(props);
+    this.canvasRef = React.createRef();
+  }
+  render() {
+    return (
+      <div>
+        <canvas ref={this.canvasRef} />
+      </div>
+    );
+  }
+
+
+
+componentDidMount() {
+    const canvas = this.canvasRef.current;
+    const context = canvas.getContext('2d');
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
+ 
+ }
+ 
+ 
+class Smurgle extends React.Component {
+  constructor(props) {
+    super(props);
+    this.canvasRef = React.createRef();
+  }
+  render() {
+    return (
+      <div>
+        <canvas ref={this.canvasRef} />
+      </div>
+    );
+  }
+
+componentDidMount() {
+    const canvas = this.canvasRef.current;
+    const context = canvas.getContext('2d');
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
+ }
+ 
+ 
+
+
+class PureCanvas extends React.Component {
+  shouldComponentUpdate() {
+    return false;
+  }
+  render() {
+    return (
+      <canvas
+        width="300"
+        height="300"
+        ref={node =>
+          node ? this.props.contextRef(node.getContext('2d')) : null
+        }
+      />
+    );
+  }
+}
+
+class XplTrackCanvas extends React.Component {
+  constructor(props) {
+    super(props);
+    this.saveContext = this.saveContext.bind(this);
+    this.virgin = false;
+  }
+  saveContext(ctx) {
+    this.ctx = ctx;
+    this.width = this.ctx.canvas.width;
+    this.height = this.ctx.canvas.height;
+  }
+  componentDidUpdate() {
+    const { angle } = this.props;
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.clearRect(0, 0, this.width, this.height);
+    this.ctx.translate(this.width / 2, this.height / 2);
+    this.ctx.rotate((angle * Math.PI) / 180);
+    this.ctx.fillStyle = '#4397AC';
+    this.ctx.fillRect(
+      -this.width / 4,
+      -this.height / 4,
+      this.width / 2,
+      this.height / 2
+    );
+    this.ctx.restore();
+    console.log("Update done: " + angle);
+  }
+  render() {
+  	console.log(this.props.angle);
+  	if (this.virgin) this.componentDidUpdate();
+  	this.virgin = true;
+    return <PureCanvas contextRef={this.saveContext} />;
+  }
+}
+
+
+class Furr extends React.Component {
+
+	render() {
+		return <div>Meow</div>;
+	}
+}
+
+		{this.clipMaps.map((clip, clipx) =>{
+			return <XpjClipView clip={clip} clipN={clipx} transform={this.transform}/>
+		})}
+
+			{for (let r = xpc.minRow; r < xpc.maxRow; ++r) {
+				let rowA = this.matrix[r];
+				<tr>
+				for (let c = xpc.minCol; c < xpc.maxCol; ++c) {
+					let clip = rowA[c];
+					if (!clip) {
+						<td> </td>
+					} else {
+						<td> <XpjClipView clip={clip} clipN={clipx} transform={this.transform}/></td>
+					}
+				</tr>
+			}}
+
+https://blog.cloudboost.io/for-loops-in-react-render-no-you-didnt-6c9f4aa73778
+
+const Program_Type = Object.freeze({
+	DRUM = 0,
+	KEYGROUP = 1,
+	PLUGIN = 3,
+	MIDI = 4,
+	CV = 5,
+	AUDIO = 6
+});
+
+Program_Type.AUDIO
+
+
+
+function getHeaders() {
+var req = new XMLHttpRequest();
+req.open('GET', document.location, false);
+req.send(null);
+
+// associate array to store all values
+var data = new Object();
+
+// get all headers in one call and parse each item
+var headers = req.getAllResponseHeaders().toLowerCase();
+var aHeaders = headers.split('\n');
+var i =0;
+for (i= 0; i < aHeaders.length; i++) {
+    var thisItem = aHeaders[i];
+    var key = thisItem.substring(0, thisItem.indexOf(':'));
+    var value = thisItem.substring(thisItem.indexOf(':')+1);
+    data[key] = value;
+}	    
+
+// get referer
+var referer = document.referrer;
+data["Referer"] = referer;
+
+//get useragent
+var useragent = navigator.userAgent;
+data["UserAgent"] = useragent;
+
+
+//extra code to display the values in html
+var display = "";
+for(var key in data) {
+    if (key != "")
+	display += "<b>" + key + "</b> : " + data[key] + "<br>";
+}
+document.getElementById("dump").innerHTML =  display;  
+   }	
+
+
+div with id of 'dump'
+
+.git;.meteor;build;Build;.gradle;node_modules
+*.o;*.obj;*.a;*.so;*.d;*.bin;*.zip
+
+
+server : xcerebellum/1.0 
+connection : close 
+etag : w/"2427-4e99b11b" 
+content-length : 2427 
+content-type : text/html 
+Referer : http://192.168.0.1/
+UserAgent : Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36
+
+
+Does it have /DR/ in the URL?
+
+http://www.fentonia.com/catnip/midianbeta/xpj2midi.html
+
+Phone Gap can run on Electron.
+
+Best times to talk to UK:
+
+8 AM Chicago = 2 PM UK
+Noon Chicago = 6 PM UK
+
+On a Midi track:
+
+programChangeEnable: true,
+programIndex: 28,
+
+Skype ID: jamie.fenton7
+
+https://stackoverflow.com/questions/22041207/is-it-possible-to-upload-a-folder-using-html-form-php-script/46562869#46562869
+FOLDER UPLOADING:
+
+<form method="post" enctype="multipart/form-data" action="#">
+        Folder Name: <input type="text" name="foldername" /><br/>
+        Choose Directoryy:  <input type="file" name="files[]" id="files" multiple directory="" webkitdirectory="" mozdirectory=""><br/>
+    <input class="button" type="submit" value="Upload" name="upload" />
+</form>
+
+<?php
+
+if(isset($_POST['upload']))
+{
+        if($_POST['foldername']!="")
+        {
+                $foldername=$_POST['foldername'];
+                if(!is_dir($foldername))
+                        mkdir($foldername);
+                foreach($_FILES['files']['name'] as $i=>$name)
+                {
+                        if(strlen($_FILES['files']['name'][$i]) > 1)
+                        {
+                                move_uploaded_file($_FILES['files']['tmp_name'][$i],$foldername.'/'.$name);
+                        }
+                }
+                echo "Folder is uploaded successfully ..";
+        }
+        else
+        echo "Folder uploaded Failed!!";
+}
+?>
+
+https://github.com/transloadit/uppy
+
+import Uppie from './js/uppie.js';
+
+	let uppie = new Uppie();
+	let duppy = document.querySelector('#uploader');
+	let me = this;
+	uppie(duppy, function (event, formData, files) {
+		var flist = [];
+		for (var [key, value] of formData.entries()) { if(key === 'files[]') flist.push(value); }
+		me.uploadNext(flist);
+	});
+
+// Disentangle td, th, and table
+
+
+table {
+	border-collapse: collapse;
+	text-align: center;
+}
+td {
+	border: solid 1px;
+	padding: 0.2em;
+}
+
+th {
+	border: solid 1px;
+	padding: 0.2em;
+}
+
+
+/DR/FTF/move.lua?/Force/MPC|Orchestral|-|Free|Edition|Installer.xpn%20/Expansions/MPC|Orchestral|-|Free|Edition|Installer.xpn:1 Failed to load resource: the server responded with a status of 414 (Request-URI Too Large)
+
+
+
+
+// dirList = directory array that the zonkList files live inside. Used for recursive subdirectory deletion.
+  deleteNext (zonkList, dirList, doneFunc)
+{
+	if (zonkList.length === 0) {
+		doneFunc(true);
+		return;
+	}
+	let that = this;
+	let file = zonkList.shift();
+	let fileEnc = encodeURIComponent(file);
+	let url = "/upload.cgi?DEL=" + fileEnc;
+	// Capture closure.
+	let zonkFunc = function (status) {
+		if (!status) {// Pass failure back up the stack.
+			doneFunc(false);
+			return;
+		}
+		$.get(url).done(function(data, textStatus, jqXHR){
+			if (textStatus !== 'success') {
+				alert(textStatus);
+				doneFunc(false);
+				return;
+			}
+		that.deleteNext(zonkList, dirList, doneFunc);
+	   });	
+	};
+
+	if (isDirectoryEntry(file, dirList)) {
+		var	dirurl = "/command.cgi?op=100&DIR=" + file +"&TIME="+(Date.now());
+		$.get(dirurl).done(function(data, textStatus, jqXHR){
+	   // Save the current path.
+		// Split lines by new line characters.
+		let xlsd = data.split(/\n/g);
+		// Ignore the first line (title) and last line (blank).
+		xlsd.shift();
+		xlsd.pop();
+		// Convert to V2 format.
+		convertFileList(xlsd);
+		let subZonk = [];
+		// make a zonkList of the subdirectory contents.
+		for (var i = 0; i < xlsd.length; ++i) {
+			let subName = file + '/' + xlsd[i].fname;
+			subZonk.push(subName);
+		}
+		// and recur.
+		that.deleteNext(subZonk, xlsd, zonkFunc);
+	  });
+	} else zonkFunc(true);
+}
+
+https://www.npmjs.com/package/webpack-bundle-analyzer
+
+
+react                                      16.3.1  16.8.6  16.8.6  viewScore
+react-autocomplete-input                    1.0.8  1.0.10  1.0.10  viewScore
+react-dom                                  16.3.1  16.8.6  16.8.6  viewScore
+react-dropdown                              1.4.0   1.6.4   1.6.4  viewScore
+react-sortable-hoc                          0.6.8   0.6.8   1.9.1  viewScore
+
+babel-loader               7.1.5   7.1.5   8.0.5  midian
+file-loader               1.1.11  1.1.11   3.0.1  midian
+file-saver                 1.3.8   1.3.8   2.0.1  midian
+handlebars                4.0.12   4.1.2   4.1.2  midian
+handlebars-loader          1.7.0   1.7.1   1.7.1  midian
+react                     16.8.2  16.8.6  16.8.6  midian
+react-dom                 16.8.2  16.8.6  16.8.6  midian
+uglifyjs-webpack-plugin    1.3.0   1.3.0   2.1.2  midian
+webpack                   4.10.2  4.30.0  4.30.0  midian
+webpack-cli                2.0.9   2.1.5   3.3.1  midian
+
+
+    "jquery": "^3.4.1",
+
+source-map-explorer midian.js midian.js.map 
+
+
+
+import createClass from "create-react-class";
+
+
+https://itnext.io/your-own-react-ui-library-using-webpack-4-creating-and-showcasing-tutorial-bc777300b039
+
+{
+    resolve: {
+        modules: [
+            path.resolve(__dirname, 'node_modules'),
+            path.resolve(__dirname, 'node_modules/ui/node_modules'),
+        ],
+    },
+}
+
+Directorys are the project filename (without .xpj) plus _[ProjectData]
+
+_[ProjectData]
+
+
+<audio controls preload='none'><source src={getSamplePathPrefix() + this.props.osc.fileName} type='audio/wav'/></audio>
+
+
+  srcU=''
+  srcD='img/glyphicons-176-stop.png'/>)
+
+
+./png/glyphicons-halflings-72-play.png
+./png/glyphicons-halflings-73-pause.png
+
+
+		return <div className='xpjaud'>{name}
+		<audio preload='none' ref={el=>this.audioRef = el}><source src={fullPath} type='audio/wav' /></audio><br/>
+		<PlayerControl pushed={this.state.pushed} command={(e)=>{this.control('play', e)}}/>
+		</div>;
+		
+		
+		
+		
+		
+option	type	default	description
+audioRate	float	1	Speed at which to play audio. Lower number is slower.
+audioContext	object	none	Use your own previously initialized AudioContext or leave blank.
+audioScriptProcessor	object	none	Use your own previously initialized ScriptProcessorNode or leave blank.
+autoCenter	boolean	true	If a scrollbar is present, center the waveform around the progress.
+backend	string	WebAudio	WebAudio or MediaElement. In most cases you don't have to set this manually. MediaElement is a fallback for unsupported browsers.
+barGap	number	none	The optional spacing between bars of the wave, if not provided will be calculated in legacy format.
+barHeight	number	1	Height of the waveform bars. Higher number than 1 will increase the waveform bar heights.
+barWidth	number	none	If specified, the waveform will be drawn like this: ▁ ▂ ▇ ▃ ▅ ▂
+closeAudioContext	boolean	false	Close and nullify all audio contexts when the destroy method is called.
+container	mixed	none	CSS-selector or HTML-element where the waveform should be drawn. This is the only required parameter.
+cursorColor	string	#333	The fill color of the cursor indicating the playhead position.
+cursorWidth	integer	1	Measured in pixels.
+fillParent	boolean	true	Whether to fill the entire container or draw only according to minPxPerSec.
+forceDecode	boolean	false	Force decoding of audio using web audio when zooming to get a more detailed waveform.
+
+
+
+height	integer	128	The height of the waveform. Measured in pixels.
+
+
+
+  command(name, e, panel) {
+  
+  
+program.padNoteMap.noteForPad[ix] = [36, 37, ...];
+
+<div id="uploader">
+	<form action="/upload.cgi" method="post" enctype="multipart/form-data" target="hogehogeFrame" >
+		<input id='xpjopenlocal'name="file" type="file" accept=".xpj,.XPJ"/>
+		<input id='uploadbut' type="submit" value="upload"/>
+		<iframe src="about:blank" id="hogehogeFrame" name="hogehogeFrame" style="display:none;"></iframe>
+	</form>
+	<br>Drag and drop a directory or an .XPJ file along with its directory<br>
+</div>
+
+<div id="uploader">
+
+</div>
+
+
+  fullPathFor(name) {
+  	if (this.currentPath === '/') return '/' + name;
+	return this.currentPath + '/' + name;
+  }
+  
+  
+  
+  OUt:
+/*
+	$.ajax({
+	url         : filename,
+	cache       : false,
+	processData : false,
+	method:		'GET',
+	type        : 'GET',
+	success     : function(data, textStatus, jqXHR){
+		me.setEditData(data);
+		if(done) done(data);
+	},
+
+	error: function (data, textStatus, jqXHR) {
+		console.log("Error: " + textStatus);
+	},
+
+	xhr: function() {
+		var xhr = new window.XMLHttpRequest();
+		xhr.responseType= 'blob';
+		return xhr;
+	},
+
+	});
+*/
+
+FileManager.
+
+	this.prefixId("status").text("Loading: " +  this.fname);
+
+Undefined: rowA entry possible:
+
+		for (let c = xpj.minCol; c < xpj.maxCol; ++c) {
+			let clip = rowA[c];
+			let colorStyle = this.colorStyleFor(c);
+
+
+
+http://www.fentonia.com/catnip/midianmpc/index_xpj.html
+
+https://www.plus2net.com/jquery/msg-demo/window-parent-data.php
+
+
+
+<a href="javascript:void(0);"
+ NAME="My Window Name"  title=" My title here "
+ onClick=window.open("window-child.html","Ratting","width=550,height=170,0,status=0,");>Click here to open the child window</a>
+
+
+<input type=button onClick=window.open("window-child.html","Ratting","width=550,
+height=170,left=150,top=200,toolbar=0,status=0,"); value="Open Window">
+
+
+<a href="javascript:void(0);"
+ NAME="My Window Name"  title=" My title here "
+ onClick=window.open("window-child.html","Ratting","width=550,height=170,0,status=0,scrollbars=1");>Click here to open the child window</a>
+
+ https://www.plus2net.com/jquery/msg-demo/window-parent-data.php
+ 
+ JQuery Parent Window
+ 
+ <script>
+$(document).ready(function() {
+var newWin; // declaring global variable 
+////////////////////////////
+$("#b_open").click(function(){
+newWin = window.open("window-child-data.php");
+})
+//////////////
+$("#b_close").click(function(){
+newWin.close(); 
+})
+</script>
+
+JQuery Child Window
+
+<script>
+$(document).ready(function() {
+////////////////
+var str=parent.window.opener.$('#t1').val()	
+$('#d1').html("Parent Window Data = " + str);
+//////////////
+$("#b2").click(function(){
+var sel=$('#t2').val();	
+window.opener.$('#t1').val(sel);	
+self.close(); 
+})
+///////
+})
+</script>
+
+
+
+HTML Parent Window:
+
+<input type='text' class='form-control' id='t1'>
+<button type='button' class='btn btn-success btn-lg ' id='b_open'>Open Child Window</button>
+<button type='button' class='btn btn-danger btn-lg ' id='b_close'>Close Child Window</button>
+
+
+///////
+})
+</script>
+
+
+React wrap of uppy:
+
+https://uppy.io/docs/react/drag-drop/
+
+
+https://medium.com/javascript-in-plain-english/build-a-drag-and-drop-dnd-layout-builder-with-react-and-immutablejs-78a0797259a6
+
+<td><button id="xpjtestbut" class="butn testbut" title="testbutn">Test</button></td>
+
+
+"Force/808DiddleA2A_[ProjectData]/BD 808 2 MP3 F.WAV"
+
+document.domain
+
+
+With Webpack 4 and the import() syntax (not to be confused with the import syntax), conditionally loading the polyfills is pretty easy.
+
+import('./AdminPage.js')  // Dynamic import.
+
+
+  componentDidMount() {
+    import('./AdminPage').then(module => {
+      this.setState({ AdminPage: module.default });
+    });
+  }
+
+https://reactjs.org/docs/code-splitting.html
+
+npm install http-server -g
+
+$ cd MyApp
+
+$ http-server
+
+https://www.npmjs.com/package/light-server
+
+https://reactjs.org/docs/uncontrolled-components.html
+
+<input type="file">
+
+Input FileUpload multiple Property
+
+<input type="file" id="ctrl" webkitdirectory directory multiple/>
+
+npm install -D copy-webpack-plugin
+
+/Users/jamie/deluge
+Jamies-MacBook-Pro-2:deluge jamie$ light-server -s distribution/
+
+
+Host on FlashAir and then have S3 supply the CORS header allowing 192.168.0.1
+to access the web services?
+
+Basic home screen that draws the directory and allows "open", etc.
+
+Transloadit
+https://uppy.io/docs/transloadit/
+
+
+
+uppy.on('complete', (result) => {
+  const url = result.successful[0].uploadURL
+  store.dispatch({
+    type: SET_USER_AVATAR_URL,
+    payload: { url: url }
+  })
+})
+
+
+
+https://gist.github.com/waaaaRapy/c0ddf3c694ae6af8b2028a01a1158b63
+
+print([[
+HTTP/1.1 200 OK
+Content-Type: image/jpeg
+Transfer-Encoding: chunked
+]])
+
+IMG = "/img.jpg"
+
+chunk_size = 8192
+size = lfs.attributes(IMG).size
+
+img = io.open(IMG)
+
+repeat
+  size = size - chunk_size
+  if (size < 0) then
+    chunk_size = chunk_size + size
+    size = 0
+  end
+  print(string.format("%x", chunk_size))
+  print(img:read(chunk_size))
+until size == 0
+
+print("0")
+print("")
+
+img:close()
+
+// Contains a dir listing example. Maybe add CORS response to it?
+
+/Users/jamie/deluge/downrush/DR/FTF/command100emu.lua
+
+
+class DirPage extends React.Component {
+  constructor (props) {
+	super(props);
+	this.loadItems = this.loadItems.bind(this);
+	let flasher = getFlashAirFS();
+	flasher.dir("/KITS", function (dirList, status) {
+		console.log(status);
+		console.log(dirList);
+		flasher.read("http://192.168.0.1/","text",function (data, stat) {
+			console.log(status);
+			console.log(data);
+		});
+	});
+  }
+
+
+Dir fetch works because
+print "Access-Control-Allow-Origin: *"
+However GET does not.
+Maybe write a special version of GET and UPLOAD?
+
+	//let url = "/command.cgi?op=100&DIR=" + nextPath+"&TIME="+(Date.now());
+	//let url = "http://192.168.0.1/command.cgi?op=100&DIR=" + nextPath+"&TIME="+(Date.now());
+	let url = "http://192.168.0.1/DR/FTF/command100emu.lua?DIR=" + nextPath+"&TIME="+(Date.now());
+
+
+Review React lifecycle methods.
+h/t: https://blog.bitsrc.io/react-16-lifecycle-methods-how-and-when-to-use-them-f4ad31fb2282
+
+Constructor idiom: (Class Fields)
+
+class MyComponent extends Component {
+  state = {
+    counter: 0,
+  };
+}
+
+this.grid = React.createRef();
+
+constructor
+
+getDerivedStateFromProps
+
+render
+
+componentDidMount  - After we’ve rendered our component for the first time, this method is called.
+This is where to load data.
+
+shouldComponentUpdate(nextProps, nextState) - We have new props.
+
+getSnapshotBeforeUpdate - between render and changes being mirrored in the DOM.
+
+componentDidUpdate - Reacting (hah!) to committed changes to the DOM.
+
+componentWillUnmount - cancel requests, remove listeners, etc.
+
+
+getDerivedStateFromError
+
+componentDidCatch
+
+this.setState((state, props)=>({
+  counter: state.count + props.increment
+}));
+
+
+Make "Drop files here or browse" bigger (to fill yellow area). You must drop on text (at present).
+
+ForceUpdate does not propogate down to FileList::componentDidMount.
+<FileListEntry entry={val}/>

@@ -1,0 +1,39 @@
+{
+  "name": "catnip",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@uppy/core": "^1.0.1",
+    "@uppy/react": "^1.0.1",
+    "array-flatten": "^2.1.2",
+    "eol": "^0.9.1",
+    "file-saver": "^2.0.1",
+    "jquery": "^3.4.1",
+    "pako": "^1.0.10",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-scripts": "3.0.1",
+    "typescript": "^3.4.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
