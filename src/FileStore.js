@@ -294,11 +294,17 @@ class DropInFS extends FileStore {
   addFiles(fileList) {
 		for (let x in fileList) {
 			let f = fileList[x];
-			let fn = f.name;
-			let fparts = fn.split('/');
+			let fpn = f.data.fullPath;
+			if (!fpn) {
+				fpn = f.data.name;
+			}
+			let fparts = fpn.split('/');
+			if (fparts.length > 0 && fparts[0] === '') {
+				fparts.shift();
+			}
 			let ndirs = fparts.length - 1;
 			let lastDir = this.dirMap;
-			let fName = fparts[ndirs];
+			let fName = f.name;
 			// work our way down, creating directories as needed.
 			for (let d = 0; d < ndirs; ++d) {
 				let aPart = fparts[d];
@@ -309,8 +315,8 @@ class DropInFS extends FileStore {
 				}
 				lastDir = dirObj;
 			}
-			lastDir[fName] = f;
-			this.fileMap[fn] = f;
+			lastDir[fName] = f.data;
+			this.fileMap[fpn] = f.data;
 		}
 	}
 

@@ -5,6 +5,8 @@ import { DragDrop } from '@uppy/react';
 import { Uppy } from '@uppy/core';
 import {getDropInFS, getFlashAirFS} from './FileStore';
 import {FileList} from './FileList.jsx';
+import '@uppy/core/dist/style.css'
+import '@uppy/drag-drop/dist/style.css'
 import './DirPage.css';
 
 class DropZone extends React.Component {
@@ -21,7 +23,7 @@ class DropZone extends React.Component {
   }
 
   render () {
-	return <DragDrop uppy={this.uppy} />
+	return <DragDrop uppy={this.uppy}/>
   }
 }
 
@@ -29,16 +31,44 @@ class DirPage extends React.Component {
   constructor (props) {
 	super(props);
 	this.loadItems = this.loadItems.bind(this);
+	this.chDir = this.chDir.bind(this);
+	this.launch = this.launch.bind(this);
 	this.dropFS = getDropInFS();
 	this.state = {pathDir: "/", list: []};
   }
 
   render () {
-  console.log("Rendering DirPage");
+  	let me = this;
 	return <div><div className='dropzone'><DropZone loadFunc={this.loadItems}/>
 	</div>
-	<FileList list ={this.state.list} />
+	<FileList list ={this.state.list} chDir={me.chDir} launch={me.launch} />
 	</div>
+  }
+
+  chDir(toDir) {
+	let me = this;
+	this.setState((state)=>{
+		console.log("To Dir: " + toDir);
+		let newPath;
+		if (toDir === '..') {
+			let splut = state.pathDir.split('/');
+			splut.pop();
+			newPath = splut.join('/');
+		} else {
+			newPath = state.pathDir !== '/' ? state.pathDir + "/" + toDir : "/" + toDir;
+		}
+		let fs = me.dropFS;
+			fs.dir(newPath, function (list, stat) {
+				me.setState({list: list});
+			});
+			return {pathDir: newPath}
+	});
+  }
+
+
+  launch(item) {
+	console.log("launch " + item.fname);
+	console.log(item);
   }
 
   loadItems(itemList) {
@@ -48,8 +78,6 @@ class DirPage extends React.Component {
 	let fs = this.dropFS;
 	let me = this;
 	fs.dir(this.state.pathDir, function (list, stat) {
-		console.log("Mountee");
-		console.log(list);
 		me.setState({list: list});
 	});
   }

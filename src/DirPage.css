@@ -1,4 +1,9 @@
 .dropzone {
-	height: 48px;
 	background-color: #F8F8E0;
 }
+
+/* Stomp on top of the DragDrop style that eats up so much space. */
+.uppy-DragDrop-inner {
+  padding: 20px 20px;
+ }
+

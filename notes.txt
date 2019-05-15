@@ -7184,3 +7184,211 @@ Make "Drop files here or browse" bigger (to fill yellow area). You must drop on 
 
 ForceUpdate does not propogate down to FileList::componentDidMount.
 <FileListEntry entry={val}/>
+
+ http://flashair/hello.lua?HELLOWORLD
+ 
+lua= arg[-1]
+fname= arg[0]
+argm = arg[1]
+
+print(lua)
+--lua
+print(fname)
+--/hello.lua
+print(argm)
+--HELLOWORLD
+
+print "HTTP/1.1 200 OK"
+print "Content-Type: text/plain"
+print ""
+print "Hello World"
+
+
+// Code to get time from status registers:
+
+DL = string.sub (fa.ReadStatusReg (), 225, 226) 
+DH = string.sub (fa.ReadStatusReg (), 227 
+, 228) TL = string.sub (fa.ReadStatusReg (), 229, 230) 
+TH = string.sub (fa. ReadStatusReg (), 231, 232) 
+z = tonumber (DH..DL..TH..TL, 16) 
+Year, Month, Day, Hour, min, sec = t.GetLocalTimeFromFATtime (z); 
+print ("RegTime" .. Year .. "/" .. Month .. " /" .. Day .. "" ..Hour .. ":" .. min .. ":" .. sec .. ""); 
+
+fa.ip
+
+https://seesaawiki.jp/flashair-dev/d/Lua%a5%b9%a5%af%a5%ea%a5%d7%a5%c8%a5%b5%a5%f3%a5%d7%a5%eb%bd%b8
+
+result = fa.HTTPGetFile("https://flashair-developers.com/images/assets/flashairLogo_official_small.png", "logo.png")
+
+ini={
+    APPAUTOTIME="",
+    APPINFO="",
+    APPNAME="",
+    APPNETWORKKEY="",
+    APPSSID="",
+    BRGNETWORKKEY="",
+    BRGSSID="",
+    CID="",
+    CIPATH="",
+    DELCGI="",
+    LUA_RUN_SCRIPT="",
+    LUA_SD_EVENT="",
+    MASTERCODE="",
+    PRODUCT="",
+    STA_RETRY_CT="",
+    TIMEZONE="",
+    UPDIR="",
+    VENDOR="",
+    VERSION="",
+    IP_Address="",
+    Subnet_Mask="",
+    Default_Gateway="",
+    DNS_Server1="",
+    DNS_Server2="",
+    Proxy_Name="",
+    Port_Number="",
+    APPMODE="",
+    DNSMODE="",
+    IFMODE="",
+    LOCK="",
+    NOISE_CANCEL="",
+    UPLOAD="",
+    WEBDAV="",
+    DHCP_Enabled="",
+    Proxy_Enabled="",
+ 
+--[[
+      APPCHANNEL="",
+    HTTPDMODE="",
+    HTTPDUSER="",
+    HTTPDPASS="",
+    APPMINTIME="",
+    APPMAXTIME="",
+    REDIRECT="",
+    APPEXT="",
+    APPTYPE="",
+    AGINGTIME="",
+    WLANSTAMODE="",
+    DOMAINNAME="",
+    COMMAND="",
+    APMODE="",
+    NOGATEWAYMODE="",
+    SCRIPT="",
+]]--
+}
+
+-- CONFIG READER ---
+print "HTTP/1.1 200 OK\nPragma: no-cache\nCache-Control: no-cache\n";
+
+--READ START
+f = io.open("/SD_WLAN/CONFIG","r");
+if(f==nil) then print ("Not Found.");return; end;
+
+--ANALYZE
+for l in f:lines() do
+    s = string.gsub(l," ","");
+    h = string.sub(s,1,1);
+    print(s);
+    if (h ~= "[") then
+        for key, value in string.gmatch(s, "([^=]+)=([^=]+)") do
+            ini[key] = string.gsub(value,"\r","");
+        end
+    end
+end
+
+f:close();
+
+--CONFIG...
+--ここで書き換えたい設定を記入する。
+--ここで変更しなかったデータはそのまま残る。(順序はシャッフルされるが)
+
+ini["DNSMODE"]="0";
+
+--DELETE VOID KEY
+for key,value in pairs(ini) do
+    if(value == "")then
+        ini[key]=nil;   
+    end
+end
+
+--OUTPUT a-z
+fa.rename("/SD_WLAN/CONFIG","/SD_WLAN/CONFIG.bak");
+
+fo = io.open("/SD_WLAN/CONFIG","w");
+
+print("-----")
+print("[Vendor]\n");
+fo:write("[Vendor]\r\n\r\n");
+for i=0,26,1 do
+    n = 0x61 + i;
+    for key,value in pairs(ini) do
+        h = string.byte(string.lower(key));
+        if(h == n) then
+            print(key.."="..value.."");
+            fo:write(key.."="..value.."\r\n");
+          end
+    end
+end
+fo:close();
+
+print "Done";
+
+
+diskutil unmount disk2s1
+diskutil mount disk2s1
+
+// Still requires the allow, unfortunately:
+application/x-www-form-urlencoded, multipart/form-data, or text/plain
+
+The Eye-Fi products are
+being built around the Atheros AR6001GL chip [6], a category of the SoC
+technology named "Radio-On-a-Chip for mobiles".
+
+https://i.blackhat.com/us-18/Wed-August-8/us-18-Valadon-Reversing-a-Japanese-Wireless-SD-Card-From-Zero-to-Code-Execution.pdf
+
+“/eva.cgi”
+
+edit SD_WLAN/CONFIG with
+TELNET=1
+telnet daemon on 23/tcp
+character per character
+
+Toshiba TC90535XBG
+
+https://github.com/guedou/flashre
+
+cgen - MeP architecture description in guile 
+MeP Core (MeP-c4) User's Manual (Architecture)
+
+wup_tsk - wake up a task in T-Kernel
+
+TRON
+
+The Real-time Operating system Nucleus
+Japanese RTOS
+launched in 1984
+specifications maintained by the TRON Forum
+
+ μITRON 4.0
+ 
+ 
+ /Users/jamie/catnip/node_modules/@uppy/drag-drop/dist/style.css
+ .uppy-DragDrop-inner {
+  margin: 0;
+  text-align: center;
+  padding: 10px 10px;
+  line-height: 1.4; }
+
+Test prod build:
+
+serve -s build
+http://localhost:5000
+http://192.168.2.65:5000  
+
+
+The project was built assuming it is hosted at the server root.
+You can control this with the homepage field in your package.json.
+For example, add this to build it for GitHub Pages:
+
+  "homepage" : "http://myname.github.io/myapp",
+
