@@ -1,6 +1,6 @@
 import React from 'react';
 //import ReactDOM from 'react-dom';
-
+import './FileList.css';
 
 class FileListEntry  extends React.Component {
   constructor(props) {
@@ -11,8 +11,9 @@ class FileListEntry  extends React.Component {
   render() {
 	let item = this.props.entry;
 	let name = item.fname;
+	let etype = item.isDirectory ? 'filedir' : 'fileentry';
 	let me = this;
-	return  <tr onClick={me.handleClick}><td>{name}</td></tr>;
+	return  <tr onClick={me.handleClick}><td className={etype} >{name}</td></tr>;
   }
   handleClick(e) {
 	console.log("clicked on " + this.props.entry.fname);
@@ -77,13 +78,13 @@ case 'size':
 	let lst = [...this.props.list];
 	lst.sort(this.state.sortFunction);
 	let me = this;
-	return <table><tbody>
+	return <div className='filelist'><table ><tbody>
 		<tr onClick={e=>{me.setSortFunction('name')}}><th>Name</th></tr>
 		<tr onClick={e=>{me.props.chDir('..')}}><td>..</td></tr>
 		{lst.map((val, inx)=>{
 			return<FileListEntry entry={val} key={val.fname} clickOn={me.clickOnFile}/>
 		})}
-		</tbody></table>;
+		</tbody></table></div>;
 	}
 	
   clickOnFile(evt, item) {

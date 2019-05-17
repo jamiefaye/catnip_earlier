@@ -7370,8 +7370,8 @@ launched in 1984
 specifications maintained by the TRON Forum
 
  μITRON 4.0
- 
- 
+
+
  /Users/jamie/catnip/node_modules/@uppy/drag-drop/dist/style.css
  .uppy-DragDrop-inner {
   margin: 0;
@@ -7391,4 +7391,48 @@ You can control this with the homepage field in your package.json.
 For example, add this to build it for GitHub Pages:
 
   "homepage" : "http://myname.github.io/myapp",
+
+https://blog.logrocket.com/create-react-app-a-quick-setup-guide-b812f0aad03c
+
+// golden-layout
+https://golden-layout.com/tutorials/getting-started.html
+
+// FlexLayout
+
+https://github.com/caplin/FlexLayout
+
+react-golden-layout
+
+react-grid-layout
+
+<link type="text/css" rel="stylesheet" href="//golden-layout.com/assets/css/goldenlayout-base.css" />
+<link type="text/css" rel="stylesheet" href="//golden-layout.com/assets/css/goldenlayout-light-theme.css" />
+
+//npm i react-golden-layout
+
+// Popouts require state to be persisted and restored and can't share objects across the boundary.
+<link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-base.css" />
+<link type="text/css" rel="stylesheet" href="https://golden-layout.com/files/latest/css/goldenlayout-light-theme.css" />
+
+react-grid-layout
+
+npm install react-grid-layout
+/node_modules/react-grid-layout/css/styles.css
+/node_modules/react-resizable/css/styles.css
+
+
+npm install react-scrollbar --save
+
+  overflow-y: scroll;
+
++1 720-500-2820  PIN: 127831962#
+
+
+
+/* eslint-disable */ gets rid of warnings & fatal compile errors.
+
+convert to JSX:
+
+https://magic.reactjs.net/htmltojsx.htm
+
 

@@ -3,11 +3,14 @@ import React from 'react';
 
 import { DragDrop } from '@uppy/react';
 import { Uppy } from '@uppy/core';
-import {getDropInFS, getFlashAirFS} from './FileStore';
+import {getDropInFS, getFlashAirFS} from '../FileStore';
 import {FileList} from './FileList.jsx';
 import '@uppy/core/dist/style.css'
 import '@uppy/drag-drop/dist/style.css'
 import './DirPage.css';
+import {openWAV} from '../waverly/src/viewWAV.js';
+
+
 
 class DropZone extends React.Component {
   constructor (props) {

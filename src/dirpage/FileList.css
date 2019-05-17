@@ -1,0 +1,13 @@
+.filelist {
+	overflow-y: scroll;
+	max-height: 1024px; /* This can be much bigger than actually used */
+}
+
+td.direntry {
+	font-size: 12px;
+	font-weight: bolder;
+}
+
+td.fileentry {
+	font-size: 12px;
+}
