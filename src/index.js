@@ -26,7 +26,7 @@ var myLayout = new GoldenLayout({
             component: 'DirPage',
             props: { label: 'DirPage' }
         },{
-            type: 'column',
+            type: 'stack',
             id: 'addDocPlace',
             content:[]
         }]
