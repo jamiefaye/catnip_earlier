@@ -30,7 +30,7 @@ class WaveGroup extends React.Component {
 	let waveG = waveGrp.split("{{idsuffix}}").join(this.id);
 	$(this.el).append(waveG);
 	this.wave = new Wave(this.wavegname, this.props.waveprops);
-	
+	this.props.reportWave(this.wave);
 	if (this.props.filename !== undefined) {
 		this.loadFile("/" + this.props.filename); 
 	}

@@ -7489,3 +7489,87 @@ myLayout.root.contentItems[ 0 ].addChild({
                 props: { label: 'Waverly' }
             }]
         }
+
+  
+  
+  handleCmd(cmd)
+	switch (cmd) {
+	case 'undobut':
+		this.doUndo(e);
+		break;
+	case'redobut':
+		this.doRedo(e);
+		break;
+	case'cutbut':
+		this.cutToClip(e);
+		break;
+	case'copybut':
+		this.copyToClip(e);
+		break;
+	case 'pastebut':
+		this.pasteFromClip(e);
+		break;
+	case 'delbut':
+		this.deleteSelected(e);
+		break;
+	case 'selallbut':
+		this.selAll(e);
+		break;
+	case 'zoomselbut':
+		this.zoomsel(e);
+		break;
+	case 'plsybut':
+		this.wave.surfer.playPause(e);
+		break;
+	case'plsyselbut':
+		this.doPlaySel(e);
+		break;
+	case 'zoomoutbut':
+		this.zoom(0.5);
+		break;
+	case 'zoominbut':
+		this.zoom(2.0);
+		break;
+	case 'trimbut':
+		this.trimtozero();
+		break;
+	case 'rewbut':
+		this.wave.surfer.seekTo(0);
+		break;
+	case 'cropbut':
+		this.cropToSel(e);
+		break;
+	case 'normbut':
+		this.normalizer(e);
+		break;
+	case 'reversebut':
+		this.reverser(e);
+		break;
+	case 'fadeinbut':
+		this.fadeIn(e);
+		break;
+	case 'fadeoutbut':
+		this.fadeOut(e);
+		break;
+	default:
+		break;
+	}
+}
+
+
+  Line 259:  'audioBufferToWav' is not defined     no-undef
+  Line 260:  'base64ArrayBuffer' is not defined    no-undef
+  Line 261:   'localClipboard' is not defined       no-undef
+  Line 278:  'base64ToArrayBuffer' is not defined  no-undef
+  Line 287:   'localClipboard' is not defined       no-undef
+  Line 288:  'localClipboard' is not defined       no-undef
+  
+  
+  
+ 
+ 262 copyToClip originalEvent  // Just drop that originalEvent.
+ 
+ 
+ 
+ 
+ 

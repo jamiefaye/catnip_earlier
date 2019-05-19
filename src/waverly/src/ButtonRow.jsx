@@ -13,46 +13,51 @@ import cutbut from './img/glyphicons-599-scissors-alt.png';
 import copybut from './img/glyphicons-512-copy.png';
 import pastebut from './img/glyphicons-513-paste.png';
 
-class ButtonRow extends React.Component{
-  constructor(props) {
-	super(props);
-	this.cmd = this.cmd.bind(this);
- }
+
+class RowImgButton extends React.Component {
 
   render() {
-	let cmd = this.cmd;
+	return <button className="butn" onClick={e=>this.props.cmd(this.props.action, e)} title={this.props.title}> <img src={this.props.src} alt={this.props.title}/></button>
+  }
+}
+
+class RowButton extends React.Component {
+
+  render() {
+	return <button className="butn" onClick={e=>this.props.cmd(this.props.action, e)}>{this.props.text}</button>
+  }
+}
+
+class ButtonRow extends React.Component{
+
+  render() {
+	let cmd = this.props.cmd;
     return (
       <div>
-        <button className="butn zoominbut" onClick={e=>cmd('zoominbut')} title="Zoom in"> <img src={zoominbut} alt='zoom in'/></button>
-        <button className="butn zoomselbut" onClick={e=>cmd('zoomselbut')} title="Zoom to" > <img src={zoomselbut} alt='zoom to'/></button>
-        <button className="butn zoomoutbut"  onClick={e=>cmd('zoomoutbut')} title="Zoom out"> <img src={zoomoutbut} alt='zoom out'/></button>
-        <button className="butn rewbut"  onClick={e=>cmd('rewbut')} title="Back to start"><img src={rewbut} alt='rewind'/></button>
-        <button className="butn plsybut"  onClick={e=>cmd('plsybut')} title="Play"><img width="16px" height="18px" className="playbutimg" src={plsybut} alt='play'/></button>
-        <button className="butn plsyselbut" onClick={e=>cmd('plsyselbut')} title="Play selected"><img src={plsyselbut} alt='play sel'/></button>
-        <button className="butn undobut" onClick={e=>cmd('undobut')} title="Undo"><img src={undobut} alt='undo'/></button>
-        <button className="butn redobut" onClick={e=>cmd('redobut')} title="Redo"><img src={redobut} alt='redo'/></button>
-        <button className="butn selallbut" onClick={e=>cmd('selallbut')} title="Select All"><img src={selallbut} alt='sel all'/></button>
-        <button className="butn delbut" onClick={e=>cmd('delbut')} title="Delete">DEL</button>
-        <button className="butn cutbut" onClick={e=>cmd('cutbut')} title="Cut to clipboard"><img src={cutbut} alt='cut'/></button>
-        <button className="butn copybut" onClick={e=>cmd('copybut')} title="Copy to clipboard"><img src={copybut} alt='copy'/></button>
-        <button className="butn pastebut" onClick={e=>cmd('pastebut')} title="Paste from clipboard"><img src={pastebut} alt='paste'/></button>
+        <RowImgButton cmd={cmd} action='zoominbut' title="Zoom in" src={zoominbut} alt='zoom in'/>
+        <RowImgButton cmd={cmd} action='zoomselbut' title="Zoom to"  src={zoomselbut} alt='zoom to'/>
+        <RowImgButton cmd={cmd} action='zoomoutbut' title="Zoom out" src={zoomoutbut} alt='zoom out'/>
+        <RowImgButton cmd={cmd} action='rewbut' title="Back to start" src={rewbut} alt='rewind'/>
+        <RowImgButton cmd={cmd} action='plsybut' title="Play" width="16px" height="18px" className="playbutimg" src={plsybut} alt='play'/>
+        <RowImgButton cmd={cmd} action='plsyselbut' title="Play selected" src={plsyselbut} alt='play sel'/>
+        <RowImgButton cmd={cmd} action='undobut' title="Undo" src={undobut} alt='undo'/>
+        <RowImgButton cmd={cmd} action='redobut' title="Redo" src={redobut} alt='redo'/>
+        <RowImgButton cmd={cmd} action='selallbut' title="Select All" src={selallbut} alt='sel all'/>
+        <RowButton cmd={cmd} action='delbut' title="Delete"/>
+        <RowImgButton cmd={cmd} action='cutbut' title="Cut to clipboard" src={cutbut} alt='cut'/>
+        <RowImgButton cmd={cmd} action='copybut' title="Copy to clipboard" src={copybut} alt='copy'/>
+        <RowImgButton cmd={cmd} action='pastebut' title="Paste from clipboard" src={pastebut} alt='paste'/>
         <table><tbody><tr>
-              <td><button className="butn trimbut" onClick={e=>cmd('trimbut')} >Trim</button></td>
-              <td><button className="butn cropbut" onClick={e=>cmd('cropbut')} >Crop</button></td>
-              <td><button className="butn normbut" onClick={e=>cmd('normbut')} >Normalize</button></td>
-              <td><button className="butn reversebut" onClick={e=>cmd('reversebut')} >Reverse</button></td>
-              <td><button className="butn fadeinbut" onClick={e=>cmd('fadeinbut')} >Fade In</button></td>
-              <td><button className="butn fadeoutbut" onClick={e=>cmd('fadeoutbut')} >Fade Out</button></td>
+              <td><RowButton cmd={cmd} action='trimbut' text='Trim'/></td>
+              <td><RowButton cmd={cmd} action='cropbut' text='Crop'/></td>
+              <td><RowButton cmd={cmd} action='normbut' text='Normalize'/></td>
+              <td><RowButton cmd={cmd} action='reversebut' text='Reverse'/></td>
+              <td><RowButton cmd={cmd} action='fadeinbut' text='Fade In'/></td>
+              <td><RowButton cmd={cmd} action='fadeoutbut' text='Fade Out'/></td>
             </tr>
           </tbody></table>
       </div>
     );
-  }
-
-  cmd(what) {
-  	if (this.props.cmd) {
-		this.props.cmd(what, this);
-	}
   }
 }
 

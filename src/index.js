@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-//import $ from'jquery';
+
 import './index.css';
 import './goldenlayout-base.css';
 import './goldenlayout-light-theme.css';
@@ -24,7 +24,8 @@ var myLayout = new GoldenLayout({
         content:[{
             type:'react-component',
             component: 'DirPage',
-            props: { label: 'DirPage' }
+            props: { label: 'DirPage'},
+            width: 20
         },{
             type: 'stack',
             id: 'addDocPlace',
