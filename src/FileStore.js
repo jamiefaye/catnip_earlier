@@ -373,7 +373,7 @@ class DropInFS extends FileStore {
   read(fnameIn, dataType, done) {
   	let me = this;
 //	var files = evt.target.files;
-	let fnameZ = zapSlash(fnameIn);
+	let fnameZ = fnameIn; // zapSlash(fnameIn);
 	var f = me.fileMap[fnameZ];
 	if (f === undefined) return;
 	let reader = new FileReader();

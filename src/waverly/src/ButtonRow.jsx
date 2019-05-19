@@ -17,21 +17,21 @@ class ButtonRow extends React.Component{
   render() {
     return (
       <div>
-        <button className="butn zoominbut" title="Zoom in"><img src={zoominbut} /></button>
-        <button className="butn zoomselbut" title="Zoom to"><img src={zoomselbut} /> /></button>
-        <button className="butn zoomoutbut" title="Zoom out"><img src={zoomoutbut} /></button>
-        <button className="butn rewbut" title="Back to start"><img src={rewbut} /></button>
-        <button className="butn plsybut" title="Play"><img width="16px" height="18px" className="playbutimg" src={plsybut} /></button>
-        <button className="butn plsyselbut" title="Play selected"><img src={plsyselbut} /></button>
-        <button className="butn undobut" title="Undo"><img src={undobut} /></button>
-        <button className="butn redobut" title="Redo"><img src={redobut} /></button>
-        <button className="butn selallbut" title="Select All"><img src={selallbut} /></button>
+        <button className="butn zoominbut" title="Zoom in"> <img src={zoominbut} alt='zoom in'/></button>
+        <button className="butn zoomselbut" title="Zoom to" > <img src={zoomselbut} alt='zoom to'/></button>
+        <button className="butn zoomoutbut" title="Zoom out"> <img src={zoomoutbut} alt='zoom out'/></button>
+        <button className="butn rewbut" title="Back to start"><img src={rewbut} alt='rewind'/></button>
+        <button className="butn plsybut" title="Play"><img width="16px" height="18px" className="playbutimg" src={plsybut} alt='play'/></button>
+        <button className="butn plsyselbut" title="Play selected"><img src={plsyselbut} alt='play sel'/></button>
+        <button className="butn undobut" title="Undo"><img src={undobut} alt='undo'/></button>
+        <button className="butn redobut" title="Redo"><img src={redobut} alt='redo'/></button>
+        <button className="butn selallbut" title="Select All"><img src={selallbut} alt='sel all'/></button>
         <button className="butn delbut" title="Delete">DEL</button>
-        <button className="butn cutbut" title="Cut to clipboard"><img src={cutbut} /></button>
-        <button className="butn copybut" title="Copy to clipboard"><img src={cutbut} /></button>
-        <button className="butn pastebut" title="Paste from clipboard"><img src={pastebut} /></button>
+        <button className="butn cutbut" title="Cut to clipboard"><img src={cutbut} alt='cut'/></button>
+        <button className="butn copybut" title="Copy to clipboard"><img src={copybut} alt='copy'/></button>
+        <button className="butn pastebut" title="Paste from clipboard"><img src={pastebut} alt='paste'/></button>
         <table><tbody><tr>
-            /*  <td><div id="dropdn{{idsuffix}}" /></td> */
+
               <td><button className="butn trimbut">Trim</button></td>
               <td><button className="butn cropbut">Crop</button></td>
               <td><button className="butn normbut">Normalize</button></td>

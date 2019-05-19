@@ -9,7 +9,7 @@ import '@uppy/core/dist/style.css'
 import '@uppy/drag-drop/dist/style.css'
 import './DirPage.css';
 import {openWAV} from '../waverly/src/viewWAV.js';
-
+import {myLayout} from '../index.js';
 
 
 class DropZone extends React.Component {
@@ -70,8 +70,17 @@ class DirPage extends React.Component {
 
 
   launch(item) {
-	console.log("launch " + item.fname);
+	let launchPath = item.r_uri + '/' + item.fname;
+	console.log("launch " + launchPath);
 	console.log(item);
+	
+	
+//Add another component to the layout
+	myLayout.root.getItemsById('addDocPlace')[ 0 ].addChild({
+		type:'react-component',
+		component: 'Waverly',
+		props: { file: launchPath }
+	});
   }
 
   loadItems(itemList) {

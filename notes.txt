@@ -7436,3 +7436,56 @@ convert to JSX:
 https://magic.reactjs.net/htmltojsx.htm
 
 
+I put together a program for visualizing a Force project.
+
+http://www.fentonia.com/catnip/midianmpc/index_xpj.html
+
+Instructions for using this:
+
+https://www.youtube.com/watch?v=OoBAlUdSoX4&fbclid=IwAR360mjtFQK4fXV226dMAo2ZE_6R3gkQZJBJphbcYbQJGDWv2wS9uTxqxaI
+
+
+// Expanded into a WaveGroup:
+
+var idCtr = 0;
+let waveGrp =`<div id='wavegroup{{idsuffix}}'>
+<div id='jtab{{idsuffix}}'> </div>
+<div id="waveform{{idsuffix}}"></div>
+<div id="waveform{{idsuffix}}-timeline"></div>
+<div id="waveform{{idsuffix}}-minimap"></div>
+<div class='butnrow' id='butnrow{{idsuffix}}'>
+{{> buttonrow}}
+</div>
+<div id='procmods{{idsuffix}}'>
+</div>`;
+
+function makeWaveGroup(where) {
+let myid = idCtr++;
+let waveG = waveGrp.split("{{idsuffix}}").join("" + myid);
+$(where).append(waveG);
+// Create new WaveSurfer situated at $(where).
+/ ...    ...
+let wavegname = 'wavegroup' + myid;
+
+let wave = new Wave(wavegname, props);
+
+
+// code to indicate position for filter popup:
+ /*  <td><div id="dropdn{{idsuffix}}" /></td> */
+
+
+//Add another component to the layout
+myLayout.root.contentItems[ 0 ].addChild({
+    type:'react-component',
+    component: 'Waverly',
+    props: { file: 'X' }
+});
+
+,{
+            type: 'column',
+            content:[{
+                type:'react-component',
+                component: 'Waverly',
+                props: { label: 'Waverly' }
+            }]
+        }

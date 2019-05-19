@@ -7,7 +7,7 @@ import './goldenlayout-light-theme.css';
 import GoldenLayout from 'golden-layout';
 import {DirPage} from "./dirpage/DirPage.jsx";
 import {Xpj} from "./xpj/Xpj.jsx";
-import {ButtonRow} from './waverly/src/ButtonRow.jsx';
+import {Waverly} from './waverly/src/Waverly.jsx';
 
 import * as serviceWorker from './serviceWorker';
 
@@ -27,18 +27,15 @@ var myLayout = new GoldenLayout({
             props: { label: 'DirPage' }
         },{
             type: 'column',
-            content:[{
-                type:'react-component',
-                component: 'ButtonRow',
-                props: { label: 'Xpj' }
-            }]
+            id: 'addDocPlace',
+            content:[]
         }]
     }]
 });
 
 myLayout.registerComponent('DirPage', DirPage);
 myLayout.registerComponent('Xpj', Xpj);
-myLayout.registerComponent('ButtonRow', ButtonRow);
+myLayout.registerComponent('Waverly', Waverly);
 
 myLayout.init();
 
@@ -46,3 +43,5 @@ myLayout.init();
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://bit.ly/CRA-PWA
 serviceWorker.unregister();
+
+export {myLayout}
