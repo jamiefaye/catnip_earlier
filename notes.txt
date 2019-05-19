@@ -7568,8 +7568,4 @@ myLayout.root.contentItems[ 0 ].addChild({
   
  
  262 copyToClip originalEvent  // Just drop that originalEvent.
- 
- 
- 
- 
- 
+

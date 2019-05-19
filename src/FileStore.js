@@ -274,12 +274,12 @@ function isDirectoryEntry(name, dirList)
 	return false;
 }
 
-function zapSlash(fname) {
-		if (fname.startsWith("/")) {
-		return fname.substr(1);
-	} else {
-		return fname.substr(0);
+function zapSlash(fn) {
+	let fname = fn.substr(0);
+	if (fname.startsWith("/")) {
+		fname = fname.substr(1);
 	}
+	return fname;
 }
 
 class DropInFS extends FileStore {
@@ -375,7 +375,15 @@ class DropInFS extends FileStore {
 //	var files = evt.target.files;
 	let fnameZ = fnameIn; // zapSlash(fnameIn);
 	var f = me.fileMap[fnameZ];
-	if (f === undefined) return;
+	while (f === undefined && fnameZ.startsWith("/")) {
+		fnameZ = zapSlash(fnameZ);
+		f = me.fileMap[fnameZ];
+	}
+	if (f === undefined) {
+		alert("Issue locating file named: " + fnameIn);
+		done(undefined, "Not Found");
+		return;
+	}
 	let reader = new FileReader();
 	if (me.dataType === 'text') {
 		reader.onloadend = (function(theFile) {
