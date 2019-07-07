@@ -5,15 +5,18 @@ import {audioCtx, OfflineContext} from './AudioCtx.js';
 import UndoStack from './UndoStack.js';
 import {base64ArrayBuffer, base64ToArrayBuffer} from './base64data.js';
 import {audioBufferToWav} from './audioBufferToWav.js';
+import {openFileBrowser, saveFileBrowser} from '../../filedlg/FileBrowser.js';
+import {NipFile} from '../../common/NipFile.jsx';
 
 var localClipboard;
 
-class Waverly extends React.Component {
+class Waverly extends NipFile {
   constructor(props) {
 	super(props);
 	this.handleCmd = this.handleCmd.bind(this);
 	this.reportWave = this.reportWave.bind(this);
 	this.undoStack = new UndoStack(6);
+	this.content_type = "audio/wav";
   }
 
   render() {
@@ -87,13 +90,18 @@ class Waverly extends React.Component {
 	case 'fadeoutbut':
 		this.fadeOut(e);
 		break;
+	case 'openbut':
+		this.openDlg(e);
+		break;
+	case 'savebut':
+		let aBuf = this.wave.backend.buffer;
+		let saveData = audioBufferToWav(aBuf);
+		this.saveDlg(saveData);
+		break;
 	default:
 		break;
 	}
-	
 }
-
-
 
 
  doPlaySel(e)
@@ -320,6 +328,20 @@ class Waverly extends React.Component {
 	
 	this.wave.reframe(newPx, (start + end) / 2 / duration);
   }
+
+  openDlg(e) {
+
+	let initial='/';
+	openFileBrowser({
+		initialPath:  initial,
+		opener: function(name) {
+			//openFile(name);
+			window.alert(name);
+		}
+	});
+
+  }
+
 
 } // End of class.
 

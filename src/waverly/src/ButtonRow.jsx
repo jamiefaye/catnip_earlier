@@ -48,6 +48,7 @@ class ButtonRow extends React.Component{
         <RowImgButton cmd={cmd} action='copybut' title="Copy to clipboard" src={copybut} alt='copy'/>
         <RowImgButton cmd={cmd} action='pastebut' title="Paste from clipboard" src={pastebut} alt='paste'/>
         <table><tbody><tr>
+              <td><RowButton cmd={cmd} action='savebut' text='Save'/></td>
               <td><RowButton cmd={cmd} action='trimbut' text='Trim'/></td>
               <td><RowButton cmd={cmd} action='cropbut' text='Crop'/></td>
               <td><RowButton cmd={cmd} action='normbut' text='Normalize'/></td>

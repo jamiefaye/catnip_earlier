@@ -353,6 +353,7 @@ class DropInFS extends FileStore {
 					let ext = fp[fp.length-1].toLowerCase();
 					de["ext"] = ext;
 				}
+				de["origFile"] = dm;
 			} else if (dm instanceof Object) {
 				// Its a dir
 				de["fsize"] = 0;
@@ -411,22 +412,30 @@ function getFlashAirFS() {
 }
 
 var dropInSingleton;
+var activeFS;
 
 function getDropInFS() {	
 	if (!dropInSingleton) {
 		dropInSingleton = new DropInFS();
 		window.dropIn = dropInSingleton;
+		activeFS = dropInSingleton;
 	}
 	return dropInSingleton;
 }
 
-function getActiveFS() {	
-	if (dropInSingleton) {
-		return dropInSingleton;
+function getActiveFS() {
+	if (activeFS) return activeFS;
+	activeFS = dropInSingleton;
+	if (!activeFS) {
+		activeFS = getFlashAirFS();
 	}
 
-	return getFlashAirFS();
+	return activeFS;
+}
+
+function switchFS(toFS) {
+	activeFS = toFS;
 }
 
 
-export {FlashAirFS, getFlashAirFS, getDropInFS, getActiveFS};
+export {FlashAirFS, getFlashAirFS, getDropInFS, getActiveFS, switchFS};

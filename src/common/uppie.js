@@ -1,3 +1,4 @@
+/* eslint-disable */
 /*! uppie v1.0.8 | (c) silverwind | BSD license */
 /* eslint-disable no-var */
 (function(root, m) {

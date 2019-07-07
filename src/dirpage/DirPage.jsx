@@ -8,7 +8,7 @@ import {FileList} from './FileList.jsx';
 import '@uppy/core/dist/style.css'
 import '@uppy/drag-drop/dist/style.css'
 import './DirPage.css';
-import {openWAV} from '../waverly/src/viewWAV.js';
+//import {openWAV} from '../waverly/src/viewWAV.js';
 import {myLayout} from '../index.js';
 
 
@@ -79,7 +79,7 @@ class DirPage extends React.Component {
 	myLayout.root.getItemsById('addDocPlace')[ 0 ].addChild({
 		type:'react-component',
 		component: 'Waverly',
-		props: { file: launchPath }
+		props: { file: launchPath, fileItem: item }
 	});
   }
 

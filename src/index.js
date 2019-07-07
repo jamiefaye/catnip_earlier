@@ -8,6 +8,7 @@ import GoldenLayout from 'golden-layout';
 import {DirPage} from "./dirpage/DirPage.jsx";
 import {Xpj} from "./xpj/Xpj.jsx";
 import {Waverly} from './waverly/src/Waverly.jsx';
+import {determineRunContext} from './common/RunContext';
 
 import * as serviceWorker from './serviceWorker';
 
@@ -17,6 +18,8 @@ window.React = React;
 window.ReactDOM = ReactDOM;
 
 //ReactDOM.render(<DirPage />, document.getElementById('root'));
+
+var context = determineRunContext();
 
 var myLayout = new GoldenLayout({
     content: [{
