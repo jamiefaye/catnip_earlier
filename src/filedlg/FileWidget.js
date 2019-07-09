@@ -1,7 +1,7 @@
 import $ from 'jquery';
 import Uppie from '../common/uppie.js';
 import {formatDT} from './formatDT.js';
-import {getActiveFS} from '../FileStore.js';
+import {getRootFS} from '../FileStore.js';
 
 function zeroPad(num, places) {
   var zero = places - num.toString().length + 1;
@@ -44,7 +44,7 @@ class FileWidget {
 
 	constructor(params) {
 		this.currentPath = '/';
-		this.last_dirpath = "/";
+		this.last_dirpath = '/';
 		this.polling_active = false;
 		this.filelist = [];
 		this.sortOrder = 1;
@@ -59,7 +59,7 @@ class FileWidget {
 		} else {
 			this.params = {};
 		}
-		this.fs = getActiveFS();
+		this.fs = getRootFS();
 	}
 
   toggleChecks (e) {
@@ -278,7 +278,7 @@ if(path!== '/') {obj.push(`
 //Making Path
   makePath(dir) {
 	var arrPath = this.currentPath.split('/');
-	if (this.currentPath === "/" ) {
+	if (this.currentPath === '/' ) {
 		arrPath.pop();
 	}
 	if ( dir === ".." ) {
@@ -291,7 +291,7 @@ if(path!== '/') {obj.push(`
 	if ( arrPath.length === 1 ) {
 		arrPath.push("");
 	}
-	return arrPath.join("/");
+	return arrPath.join('/');
   }
 
   doesFileExist(path, callback) {
@@ -401,11 +401,11 @@ if(path!== '/') {obj.push(`
 	if(path)
 	{
 		var url = "";
-		if(this.last_dirpath != "/")
+		if(this.last_dirpath != '/')
 		{
-			url = this.last_dirpath+"/"+path;
+			url = this.last_dirpath+'/'+path;
 		}else{
-			url = "/"+path;
+			url = '/'+path;
 		}
 		let that = this;
 		this.fs.mkdir(url, function(status) {

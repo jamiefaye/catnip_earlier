@@ -1,11 +1,11 @@
 import React from 'react';
 import {ButtonRow} from './ButtonRow.jsx';
 import {WaveGroup} from './WaveGroup.jsx';
-import {audioCtx, OfflineContext} from './AudioCtx.js';
+import {audioCtx} from './AudioCtx.js';
 import UndoStack from './UndoStack.js';
 import {base64ArrayBuffer, base64ToArrayBuffer} from './base64data.js';
 import {audioBufferToWav} from './audioBufferToWav.js';
-import {openFileBrowser, saveFileBrowser} from '../../filedlg/FileBrowser.js';
+import {openFileBrowser} from '../../filedlg/FileBrowser.js';
 import {NipFile} from '../../common/NipFile.jsx';
 
 var localClipboard;

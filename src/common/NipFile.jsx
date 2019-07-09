@@ -4,7 +4,7 @@ import FileSaver from 'file-saver';
 
 import {determineRunContext} from './RunContext';
 import {saveFileBrowser} from '../filedlg/FileBrowser.js';
-import {getDropInFS, getFlashAirFS, switchFS} from '../FileStore';
+import {getRootFS} from '../FileStore';
 
  class NipFile extends React.Component {
 
@@ -23,11 +23,10 @@ import {getDropInFS, getFlashAirFS, switchFS} from '../FileStore';
 	if (!runContext.flashAir) {
 		return this.doLocalFileSave(data, this.props.fileItem.fname);
 	} else {
-		switchFS(getFlashAirFS());
 		saveFileBrowser({
 		  initialPath: this.props.fileItem.fname,
 		  saver: function(name) {
-			let fafs = getFlashAirFS();
+			let fafs = getRootFS();
 			//   write(filepath, data, kind, done, progress)
 			//alert("Saving to: " + name);
 			fafs.write(name, data, me.props.content_type);

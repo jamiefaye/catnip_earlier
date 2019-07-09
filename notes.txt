@@ -7940,3 +7940,45 @@ req.send(null);
 var headers = req.getAllResponseHeaders().toLowerCase();
 alert(headers);
 
+http://wwwapps.ups.com/etracking/tracking.cgi?TypeOfInquiryNumber=T&InquiryNumber1=1ZV501970414961629
+
+
+  convertFileList(fl) {
+	for (var i = 0; i < fl.length; i++) {
+		var elements = fl[i].split(",");
+		fl[i] = [];
+		fl[i]["r_uri"] = elements[0];
+		var f = elements[1];
+		if (f === undefined) continue;
+
+
+
+		fl[i]["attr"]  = Number(elements[3]);
+
+		// Use Date() instead of FlashAir-specific date code.
+		fl[i]["date"] = FADTtoJSDate(Number(elements[4]), Number(elements[5]));
+		let isDir =(Number(elements[3]) & 0x10) !== 0;
+		fl[i]["isDirectory"] = isDir;
+		if(!isDir) {
+			let fp = f.split('.');
+			let ext = fp[fp.length-1].toLowerCase();
+			fl[i]["ext"] = ext;
+		}
+	}
+  }
+
+
+
+ '/' + 
+ 
+ 
+ this.loadFile("/" + this.props.filename); 
+ 
+ 
+npm run build
+cp -R build/ /Volumes/NO\ NAME/nip/
+
+
+Can we tame the forward slash problem?
+
+r_uri (as accessed in launch) does not include the FlashAir prefix.

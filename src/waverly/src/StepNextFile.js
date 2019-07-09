@@ -59,7 +59,7 @@ function getFilesOnly(fl) {
 		let nextx = fx + dir;
 		if (nextx < 0) nextx = fileList.length - 1;
 		if (nextx >= fileList.length) nextx = 0;
-		let nextF = path + "/" + fileList[nextx]["fname"];
+		let nextF = path + '/' + fileList[nextx]["fname"];
 		callb(nextF);
 	}
 	}).fail(function(jqXHR, textStatus, errorThrown){

@@ -1,7 +1,7 @@
 import $ from 'jquery';
 import React from 'react';
 import {Wave} from './Wave.js';
-import {getActiveFS} from '../../FileStore.js';
+import {getRootFS} from '../../FileStore.js';
 
 
 var idCtr = 0;
@@ -32,8 +32,10 @@ class WaveGroup extends React.Component {
 	this.wave = new Wave(this.wavegname, this.props.waveprops);
 	this.props.reportWave(this.wave);
 	if (this.props.filename !== undefined) {
-		this.loadFile("/" + this.props.filename); 
+		this.loadFile(this.props.filename); 
+		// this.loadFile("/" + this.props.filename); 
 	}
+
   }
 
 
@@ -43,7 +45,7 @@ class WaveGroup extends React.Component {
 
 	if (nameChanged) {
 		// console.log("starting load of " + this.props.filename);
-		this.loadFile("/" + this.props.filename); 
+		this.loadFile('/' + this.props.filename); 
 	} else if (this.state.data && (this.hasNewData || !this.wave)) {
 		this.openWaveSurfer(this.state.data);
 	}
@@ -60,7 +62,7 @@ class WaveGroup extends React.Component {
 {
 	this.loadInProgress = true;
 	this.filename = this.props.filename;
-	let fs = getActiveFS();
+	let fs = getRootFS();
 	let me = this;
 
 	fs.read(filename, 'blob', function (data, status) {

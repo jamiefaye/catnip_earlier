@@ -1,6 +1,11 @@
 import $ from 'jquery';
+import {determineRunContext} from './common/RunContext';
 
 // Abstract superclass for file operations with FlashAir, local, or cloud-based.
+
+const FLASHAIR_PREFIX = "FlashAir";
+const FLASHAIR_URI_PREFIX = "/" + FLASHAIR_PREFIX;
+
 
 class FileStore {
 
@@ -10,10 +15,11 @@ class FileStore {
 	exists(path, done) {
 	}
 
-	read(path, done) {
+	read(path, datatype, done) {
 	}
 
-	write(path, data, filetype, done) {
+	write(path, data, filetype, done, progress) {
+
 	}
 
 	delete(path, done) {
@@ -28,12 +34,6 @@ class FileStore {
 
 // Specialization of FileStore for FlashAir-based version.
 class FlashAirFS extends FileStore {
-	constructor() {
-		super();
-		this.currentDir = "";
-		this.currentDirPath = "";
-	}
-
   dir(nextPath, done) {
 	let me = this;
 	let url = "/command.cgi?op=100&DIR=" + nextPath+"&TIME="+(Date.now());
@@ -228,7 +228,7 @@ class FlashAirFS extends FileStore {
 	for (var i = 0; i < fl.length; i++) {
 		var elements = fl[i].split(",");
 		fl[i] = [];
-		fl[i]["r_uri"] = elements[0];
+		fl[i]["r_uri"] = FLASHAIR_URI_PREFIX + elements[0];
 		var f = elements[1];
 		if (f === undefined) continue;
 		fl[i]["fname"] = f;
@@ -276,7 +276,15 @@ function isDirectoryEntry(name, dirList)
 
 function zapSlash(fn) {
 	let fname = fn.substr(0);
-	if (fname.startsWith("/")) {
+	if (fname.startsWith('/')) {
+		fname = fname.substr(1);
+	}
+	return fname;
+}
+
+function zapSlashes(fn) {
+	let fname = fn.substr(0);
+	while (fname.startsWith('/')) {
 		fname = fname.substr(1);
 	}
 	return fname;
@@ -285,8 +293,6 @@ function zapSlash(fn) {
 class DropInFS extends FileStore {
   constructor() {
 		super();
-		this.currentDir = "";
-		this.currentDirPath = "";
 		this.dirMap = {};
 		this.fileMap = {};
 	}
@@ -374,9 +380,9 @@ class DropInFS extends FileStore {
   read(fnameIn, dataType, done) {
   	let me = this;
 //	var files = evt.target.files;
-	let fnameZ = fnameIn; // zapSlash(fnameIn);
+	let fnameZ = '/' + fnameIn; // zapSlash(fnameIn);
 	var f = me.fileMap[fnameZ];
-	while (f === undefined && fnameZ.startsWith("/")) {
+	while (f === undefined && fnameZ.startsWith('/')) {
 		fnameZ = zapSlash(fnameZ);
 		f = me.fileMap[fnameZ];
 	}
@@ -401,6 +407,124 @@ class DropInFS extends FileStore {
 	reader.readAsBinaryString(f);
   }
 }
+
+// This object implements the FileStore protocol based on which
+// actual FS is indicated by the path syntax, noticing a volume name
+// or special path character. To add more volumes and "mount points"
+// change fsAndNameForPath and dir as needed.
+class FSRoot extends FileStore {
+  constructor() {
+	super();
+	this.runContext = determineRunContext();
+	this.flashAir = this.runContext.flashAir;
+	this.flashAirPrefix = FLASHAIR_PREFIX;
+	this.flashDate = new Date();
+  }
+
+  fsAndNameForPath(path) {
+	let pos = path.indexOf(this.flashAirPrefix);
+	let fixedPath = path;
+	let fs;
+	let fsn;
+	console.log("path in: " + path);
+	let canWrite = false;
+	if (pos === -1) {
+		fs = getDropInFS();
+		fsn = 'drop';
+	} else {
+		fs = getFlashAirFS();
+		fsn = 'fa';
+		let fixedPath0 =  path.substring(pos + this.flashAirPrefix.length);
+		fixedPath =  '/' + zapSlashes(fixedPath0);
+		console.log(fixedPath);
+		canWrite = true;
+	}
+	let ret = {fs, fixedPath, canWrite, fsn};
+	console.log(ret)
+	return ret;
+  }
+
+// dir is the only complicated case.
+  dir(nextPath, done) {
+	if(this.flashAir && (nextPath === '/' || nextPath === '')) {
+		let dropFS = getDropInFS();
+		dropFS.dir('/', (dropDir, status)=>{
+			if (status !== 'OK') {
+				done(dropDir, status);
+				return;
+			}
+			let dummyDir = 
+				{fname: this.flashAirPrefix,
+				r_uri:	'',
+				fsize:	0,
+				attr:	0x10,
+				date:	this.flashDate,
+			isDirectory: true};
+			dropDir.unshift(dummyDir);
+			done(dropDir, status);
+		});
+  		return;
+	}
+
+	let {fs, fixedPath} = this.fsAndNameForPath(nextPath);
+	fs.dir(fixedPath, done);
+  }
+
+  exists(path, done) {
+	let {fs, fixedPath} = this.fsAndNameForPath(path);
+	fs.exists(fixedPath, done);
+  }
+
+  read(path, datatype, done) {
+	let {fs, fixedPath} = this.fsAndNameForPath(path);
+	fs.read(fixedPath, datatype, done);
+  }
+
+  write(path, data, filetype, done, progress) {
+	let {fs, fixedPath, canWrite} = this.fsAndNameForPath(path);
+	if (!canWrite) {
+		done(false, "Unable to write, read-only file system");
+	} else {
+		fs.write(fixedPath, data, filetype, done, progress);
+	}
+  }
+
+  delete(path, done) {
+	let {fs, fixedPath, canWrite} = this.fsAndNameForPath(path);
+	if (!canWrite) {
+		done(false, "Unable to delete, read-only file system");
+	} else {
+		fs.delete(fixedPath, done);
+	}
+  }
+
+ mkdir(path, done) {
+	let {fs, fixedPath, canWrite} = this.fsAndNameForPath(path);
+	if (!canWrite) {
+		done(false, "Unable to mkdir, read-only file system");
+	} else {
+		fs.delete(fixedPath, done);
+	}
+  }
+
+  rename(path, path2, done) {
+	let {fs, fixedPath, canWrite} = this.fsAndNameForPath(path);
+	if (!canWrite) {
+		done(false, "Unable to rename, read-only file system");
+	} else {
+		let fixed2 = this.fsAndNameForPath(path2);
+		fs.rename(fixedPath, fixed2, done);
+	}
+  }
+
+  addFiles(fileList) {
+	let dropfs = getDropInFS();
+	return dropfs.addFiles(fileList);
+  }
+} // End of FSRoot class.
+
+
+
 var flashAirSingleton;
 
 function getFlashAirFS() {
@@ -412,30 +536,24 @@ function getFlashAirFS() {
 }
 
 var dropInSingleton;
-var activeFS;
 
 function getDropInFS() {	
 	if (!dropInSingleton) {
 		dropInSingleton = new DropInFS();
 		window.dropIn = dropInSingleton;
-		activeFS = dropInSingleton;
 	}
 	return dropInSingleton;
 }
 
-function getActiveFS() {
-	if (activeFS) return activeFS;
-	activeFS = dropInSingleton;
-	if (!activeFS) {
-		activeFS = getFlashAirFS();
+var rootFS;
+
+function getRootFS() {
+	if (!rootFS) {
+		rootFS = new FSRoot();
+		window.rootFS = rootFS;
 	}
-
-	return activeFS;
+	return rootFS;
 }
+	
 
-function switchFS(toFS) {
-	activeFS = toFS;
-}
-
-
-export {FlashAirFS, getFlashAirFS, getDropInFS, getActiveFS, switchFS};
+export {getRootFS};

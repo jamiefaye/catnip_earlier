@@ -3,7 +3,7 @@ import React from 'react';
 
 import { DragDrop } from '@uppy/react';
 import { Uppy } from '@uppy/core';
-import {getDropInFS, getFlashAirFS} from '../FileStore';
+import {getRootFS} from '../FileStore';
 import {FileList} from './FileList.jsx';
 import '@uppy/core/dist/style.css'
 import '@uppy/drag-drop/dist/style.css'
@@ -36,7 +36,7 @@ class DirPage extends React.Component {
 	this.loadItems = this.loadItems.bind(this);
 	this.chDir = this.chDir.bind(this);
 	this.launch = this.launch.bind(this);
-	this.dropFS = getDropInFS();
+	this.rootFS = getRootFS();
 	this.state = {pathDir: "/", list: []};
   }
 
@@ -60,7 +60,7 @@ class DirPage extends React.Component {
 		} else {
 			newPath = state.pathDir !== '/' ? state.pathDir + "/" + toDir : "/" + toDir;
 		}
-		let fs = me.dropFS;
+		let fs = me.rootFS;
 			fs.dir(newPath, function (list, stat) {
 				me.setState({list: list});
 			});
@@ -85,9 +85,9 @@ class DirPage extends React.Component {
 
   loadItems(itemList) {
 	console.log(itemList);
-	this.dropFS.addFiles(itemList);
+	this.rootFS.addFiles(itemList);
 	
-	let fs = this.dropFS;
+	let fs = this.rootFS;
 	let me = this;
 	fs.dir(this.state.pathDir, function (list, stat) {
 		me.setState({list: list});
