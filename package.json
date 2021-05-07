@@ -10,7 +10,7 @@
     "eol": "^0.9.1",
     "file-saver": "^2.0.2",
     "golden-layout": "^1.5.9",
-    "handlebars": "^4.1.2",
+    "handlebars": "^4.7.7",
     "handlebars-loader": "^1.7.1",
     "jquery": "^3.4.1",
     "pako": "^1.0.10",
