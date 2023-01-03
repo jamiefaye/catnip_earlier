@@ -11,7 +11,7 @@
     "file-saver": "^2.0.2",
     "golden-layout": "^1.5.9",
     "handlebars": "^4.1.2",
-    "handlebars-loader": "^1.7.1",
+    "handlebars-loader": "^1.7.3",
     "jquery": "^3.4.1",
     "pako": "^1.0.10",
     "react": "^16.8.6",
